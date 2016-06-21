@@ -108,7 +108,7 @@ def Create_bond_restart_file(q,h, Number_of_bonds,first_berg_num,first_berg_ine,
 			setattr(var,attname,getattr(ncvar,attname))
 		#Finally copy the variable data to the new created variable
 		#var[:] = ncvar[0]
-		var[:] = 0.
+		#var[:] = 0
 
 		if varname=='i':
 			var[:]=Number_of_bonds
@@ -139,18 +139,23 @@ def Create_bond_restart_file(q,h, Number_of_bonds,first_berg_num,first_berg_ine,
 
 	h.close()
 	q.close()
+	
+	if Number_of_bonds==0:
+		print 'Warning: Iceberg bond files do not work for single icebergs (no bonds). Turn iceberg bonds off'
 
-
-
-def plotting_iceberg_positions_and_bonds(lat,lon,first_berg_lat,first_berg_lon,other_berg_lat,other_berg_lon,Number_of_bergs,Number_of_bonds,R_earth,Radius,IA_scaling):
+def plotting_iceberg_positions_and_bonds(lat,lon,first_berg_lat,first_berg_lon,other_berg_lat,other_berg_lon,Number_of_bergs,Number_of_bonds,R_earth,Radius,IA_scaling,convert_to_lat_lon):
 
 	Radius=Radius*IA_scaling
 	circ_ind=np.linspace(0,2*pi,100);
 	for k in range(Number_of_bergs):
-		dR_lat=(Radius/R_earth)*(180/np.pi)
-		dR_lon=(Radius/R_earth)*(180/np.pi)*(1/np.cos(lat[k]*np.pi/180))
+		if convert_to_lat_lon==True:
+			dR_lat=(1/R_earth)*(180/np.pi)
+			dR_lon=(1/R_earth)*(180/np.pi)*(1/np.cos(lat[k]*np.pi/180))
+		else:
+			dR_lat=1 ; dR_lon=1
+
 		plt.plot(lon[k], lat[k],'bo-',linewidth=5)
-		plt.plot(lon[k]+(dR_lon*cos(circ_ind)),lat[k]+(dR_lat*sin(circ_ind)),'b');
+		plt.plot(lon[k]+(Radius*dR_lon*cos(circ_ind)),lat[k]+(Radius*dR_lat*sin(circ_ind)),'b');
 
 	for k in range(Number_of_bonds):
 		x_bond=[]
@@ -163,8 +168,12 @@ def plotting_iceberg_positions_and_bonds(lat,lon,first_berg_lat,first_berg_lon,o
 
 
 	#plt.plot(lon, lat,'bo-')
-	plt.xlabel('longitude (deg)')
-	plt.ylabel('latitude (deg)')
+	if convert_to_lat_lon==True:
+		plt.xlabel('longitude (deg)')
+		plt.ylabel('latitude (deg)')
+	else:
+		plt.xlabel('x (m)')
+		plt.ylabel('y (m)')
 	plt.title('Iceberg initial positions')
 	plt.grid(True)
 	plt.show()
@@ -172,7 +181,7 @@ def plotting_iceberg_positions_and_bonds(lat,lon,first_berg_lat,first_berg_lon,o
 
 
 
-def Define_iceberg_positions(N,M ,lon_init,lat_init,Radius,R_earth):
+def Define_iceberg_positions(N,M ,lon_init,lat_init,Radius,R_earth,convert_to_lat_lon,scale_the_grid_to_lat_lon):
 	dx_berg=[]  #x distance in cartesian of berg from lon_init
 	dy_berg=[]  #y distance in cartesian of berg from lat_init
 	dlon_berg=[] #x distance in lon of berg from lon_init
@@ -197,18 +206,31 @@ def Define_iceberg_positions(N,M ,lon_init,lat_init,Radius,R_earth):
 	#Defining lon lat positions:
 	#dlat_berg=(180/np.pi)*(1/R_earth)*dy_berg
 	#dlon_berg=(180/np.pi)*(1/R_earth)*(1/cos(lat_init*np.pi/180))*dx_berg
-	for i in range(Number_of_bergs):
-		#Finding latittude
-		dlat_dy=(180/np.pi)*(1/R_earth)
-		dlat_berg.append(dlat_dy*dy_berg[i])
-		lat.append(lat_init+dlat_berg[i])
+	if convert_to_lat_lon==True:
+		for i in range(Number_of_bergs):
+			#Finding latittude
+			dlat_dy=(180/np.pi)*(1/R_earth)
+			dlat_berg.append(dlat_dy*dy_berg[i])
+			lat.append(lat_init+dlat_berg[i])
 
-		#Finding longitude
-		dlon_dx=(180/np.pi)*(1/R_earth)*(1/np.cos(lat[i]*np.pi/180)) #Note that this depends on the latitude of the iceberg. Could approx this with lat_init.
-		dlon_berg.append(dlon_dx*dx_berg[i])
-		lon.append(lon_init+dlon_berg[i])
+			#Finding longitude
+			dlon_dx=(180/np.pi)*(1/R_earth)*(1/np.cos(lat[i]*np.pi/180)) #Note that this depends on the latitude of the iceberg. Could approx this with lat_init.
+			dlon_berg.append(dlon_dx*dx_berg[i])
+			lon.append(lon_init+dlon_berg[i])
+	else:
+		if scale_the_grid_to_lat_lon==True:
+			Scale_up=1./2000.
+			Radius=Radius*Scale_up
+			dx_berg = [(i*Scale_up) for i in dx_berg] ; dy_berg = [i*Scale_up for i in dy_berg]
+			#x=x*Scale_up ; y=y*Scale_up
+			#dx=dx*Scale_up ;dy=dy*Scale_up
+		#x=(x-np.min(x))+(dx/2) ; y=(y-np.min(y))+(dy/2)
 
-	return (Number_of_bergs,lon,lat,iceberg_num,dx_berg,dy_berg)
+		for i in range(Number_of_bergs):
+			lon.append(lon_init+dx_berg[i])
+			lat.append(lat_init+dy_berg[i])
+
+	return (Number_of_bergs,lon,lat,iceberg_num,dx_berg,dy_berg,Radius)
 
 def Define_iceberg_bonds(Number_of_bergs,iceberg_num,lat,lon,dx_berg, dy_berg,Radius):
 	
@@ -264,31 +286,47 @@ def main():
 	h=Dataset('input_files/bonds_iceberg.res.nc','r') # r is for read only
 	q=Dataset('output_files/New_bonds_iceberg.res.nc','w') # w if for creating a file
 
+	#Flags
+	save_restart_files=True
+	convert_to_lat_lon=True  #True for Weddell Sea Case
 
 
 	#Parameters
 	thickness=100.
-	Radius=3*1000.
+	Radius=0.5*1000
 	rho_ice=850.
 	mass_scaling=1.
 	R_earth=6360.*1000.
 
 	#Derived quanities
-	width=np.sqrt(np.pi*(Radius**2))
-	mass=thickness*rho_ice*np.pi*(Radius**2)
+	#width=np.sqrt(np.pi*(Radius**2))
+	#mass=thickness*rho_ice*np.pi*(Radius**2)  
+	width=2*Radius
+	mass=thickness*rho_ice*((2*Radius)**2)  
 
 	#Let interactive radius be different from radius for testing the model:
 	IA_scaling=1.#(1./2.)
 	Radius=Radius/IA_scaling
 
 	#Here we create the lons and lats for a tabular iceberg
-	N= 5  # Number of rows in iceberg
-	M= 5   # Number of columns in iceberg
+	N= 1  # Number of rows in iceberg
+	M= 1   # Number of columns in iceberg
 	lon_init=-32.9  #longitude of bottom left corner of iceberg
 	lat_init=-70.  #latitude  of bottom left corner of iceberg
+	x_init=100  #For ISOMIP Case
+	y_init=20  #For ISOMIP Case
+	#Experiment_name='Weddell'  ;  Convert_to_lat_lon=True     ; scale_the_grid_to_lat_lon=False
+	Experiment_name='ISOMIP'  ;  convert_to_lat_lon=False      ; scale_the_grid_to_lat_lon=True
+
+	#Defining lon_init, lat_init
+	if Experiment_name=='ISOMIP':
+		if convert_to_lat_lon==True:
+			lon_init=5  ; lat_init=-69.8  
+		else:
+			lon_init=x_init  ; lat_init=y_init
 
 	#Define the positions of the icebergs
-	(Number_of_bergs,lon,lat,iceberg_num,dx_berg, dy_berg)= Define_iceberg_positions(N,M ,lon_init,lat_init,Radius,R_earth)
+	(Number_of_bergs,lon,lat,iceberg_num,dx_berg, dy_berg,Radius)= Define_iceberg_positions(N,M ,lon_init,lat_init,Radius,R_earth,convert_to_lat_lon,scale_the_grid_to_lat_lon)
 
 	#Define the positions of the iceberg bonds
 	(Number_of_bonds, first_berg_num,first_berg_ine,first_berg_jne,first_berg_lat,first_berg_lon, other_berg_num,other_berg_ine, other_berg_jne,other_berg_lat,other_berg_lon)=\
@@ -305,9 +343,8 @@ def main():
 
 	##################################################################################
 	
-	plotting_iceberg_positions_and_bonds(lat,lon,first_berg_lat,first_berg_lon,other_berg_lat,other_berg_lon,Number_of_bergs,Number_of_bonds,R_earth,Radius,IA_scaling)
+	plotting_iceberg_positions_and_bonds(lat,lon,first_berg_lat,first_berg_lon,other_berg_lat,other_berg_lon,Number_of_bergs,Number_of_bonds,R_earth,Radius,IA_scaling,convert_to_lat_lon)
 	# Plotting the positions and bonds of the newly formed formation
-
 
 	print 'Script complete'
 

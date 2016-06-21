@@ -18,41 +18,43 @@ import netCDF4 as nc
 def main():
 
 	os.system('clear')
-	input_geometry_filename='input_files/Isomip_ocean_geometry.nc'
-
-	#Flags
-	use_flat_iceshelf=False
-
-	if use_flat_iceshelf==True:
-		new_filename='output_files/topog_flat.nc'
-	else:
-		new_filename='output_files/topog.nc'
+	input_filename='input_files/isomip_ice_shelf1.nc'
+	new_filename='output_files/flat_isomip_ice_shelf1.nc'
 
 	#f=Dataset(input_geometry_filename,'r')
 	#g=Dataset(new_filename,'w') # w if for creating a file
 
+	rho_ice=850.
 
-	with nc.Dataset(input_geometry_filename) as file:
-		Depth = file.variables['D'][:,:]
+	with nc.Dataset(input_filename) as file:
+		thick = file.variables['thick'][:,:]
+		area = file.variables['area'][:,:]
+		height = file.variables['height'][:,:]
 
-	M= Depth.shape
+	M= thick.shape
 	ny=M[0]
 	nx=M[1]
 	print nx,ny
+	print thick.shape
+
+	#Setting thickness to a prescribed value
+	prescribed_thickness=1.
+	thick[np.where(thick>0)]=prescribed_thickness
+
 	
-	#Creating the topog file
+	#Creating the file
 	g=Dataset(new_filename,'w') # w if for creating a file
 
 	yt=g.createDimension('yt',ny)
 	xt=g.createDimension('xt',nx)
 
-	depth_h=g.createVariable('depth','f4',('yt','xt'))
-	if use_flat_iceshelf==True:
-		g.variables['depth'][:]=Depth*0
-	else:
-		g.variables['depth'][:]=Depth
-	
-	
+	thick_h=g.createVariable('thick','f4',('yt','xt'))
+	g.variables['thick'][:]=thick>0
+	thick_h=g.createVariable('area','f4',('yt','xt'))
+	g.variables['area'][:]=area
+	height_h=g.createVariable('height','f4',('yt','xt'))
+	g.variables['height'][:]=height
+
 	g.sync()
 	g.close()
 
