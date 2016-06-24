@@ -11,7 +11,8 @@ from pylab import *
 #import matplotlib.pyplot as plt
 import pdb
 import netCDF4 as nc
-
+from hexagon_area import Divide_hexagon_into_4_quadrants_old
+from hexagon_area import Hexagon_into_quadrants_using_triangles
 
 def Create_iceberg_restart_file(Number_of_bergs, lon,lat,thickness,width,mass,mass_scaling,iceberg_num,Ice_geometry_source):
 	
@@ -584,235 +585,6 @@ def plotting_iceberg_bonds(first_berg_lat,first_berg_lon,other_berg_lat,other_be
 		plt.plot(x_bond, y_bond,'r',linewidth=5)
 
 
-
-#######################
-
-def Divide_hexagon_into_4_quadrants(x0,y0,H):
-	S=(2/sqrt(3))*H
-	Area_hex=3*(np.sqrt(3)/2)*(S**2)  #Area of the hexagon (should be equal to Area/grid_area, since it is not dim)  - check this
-	#print 'y0,H',y0, H	
-	#Defining boundaries of hexagon, and if statements to see which side of the boundary you are on
-	W1= False ; W2=False ;W3=False ;W4=False ;W5=False ;W6=False ;H1=False ;V1=False ;V2=False
-	W1=(-y0<-sqrt(3)*(-x0) + ((sqrt(3)*(S))));#upper right
-	W2=(-y0<(H));#Top
-	W3=(-y0<sqrt(3)*(-x0) + ((sqrt(3)*(S))));#Upper left
-	W4=(-y0<sqrt(3)*(-x0) + (-(sqrt(3)*(S))));#Lower right
-	W5=(-y0>-H);#Bottom
-	W6=(-y0<-sqrt(3)*(-x0) + (-(sqrt(3)*(S))));#Lower left
-		
-
-	T1=(-x0<S) #Right
-	T2=(-y0<(H));#Top
-	T3= (-x0>-S) #Left
-	T4=(-y0>-H);#Bottom
-
-	H1=(y0<0);
-	V1=(x0<-(S/2));
-	V2=(x0<(S/2));
-	  
-	#Deciding if the origin is within the hexagon
-	#print W1 , W2 , W3 , W4 , W5 , W6
-	#if In_hex:
-	#	print In_hex
-		
-	#Calculating the area of the top and bottom half of the hexagon, 2 Cases for the majority above and below the y0=0 line
-	#(and two more for the hexagon totally above and below the y0=0 line)
-	if abs(y0)<H:
-		Trapesium=((sqrt(3)*H)-(abs(y0)/sqrt(3)))*(H-abs(y0));
-		if y0>=0:
-			Area_Lower=Trapesium;
-			Area_Upper=Area_hex-Trapesium;
-		else:
-			Area_Upper=Trapesium;
-			Area_Lower=Area_hex-Trapesium;
-	else:
-		if y0>=0:
-			Area_Lower=0;
-			Area_Upper=Area_hex;
-		else: 
-			Area_Lower=Area_hex;
-			Area_Upper=0;
-
-	#Calcularing Left and Right area of the hexagon, about the x0=0 line, 3 cases:
-	#(and two more for when the hexagon is totally to the left or right of the x0=0 line)
-	if abs(x0)<S:
-		if abs(x0)<S/2:
-			Rectangle=(abs(x0)*2*H);
-			Big_side =(Area_hex/2) +Rectangle;
-			Small_side=Area_hex-Big_side;
-		else:
-			Triangle=(sqrt(3))*((S-abs(x0))**2);
-			Small_side=Triangle;
-			Big_side=Area_hex-Small_side;
-		if x0>=0:
-			Area_right=Big_side;
-			Area_left=Small_side;
-		else:
-			Area_right=Small_side;
-			Area_left=Big_side;
-	else:
-		if x0>=0:
-			Area_right=Area_hex;
-			Area_left=0;
-		else:
-			Area_right=0;
-			Area_left=Area_hex;
-
-	In_hex= W1 & W2 & W3 & W4 & W5 & W6;
-	In_hex_box=T1 & T2 & T3 & T4
-	Area_Q1=0; Area_Q2=0 ; Area_Q3=0; Area_Q4=0;
-	Sector=0
-	#if In_hex==False: #Then the hexagon is completely contained in the middle cell
-	if In_hex_box==False: #Then the hexagon is completely contained in the middle cell
-		Sector=-1
-		#mass_on_ocean[i,j,5]=mass_on_ocean[i,j,5]+Mass
-		if min(Area_Upper,Area_Lower)==0:
-			Sector=-2
-			if Area_Upper==0:
-				Area_Q3=Area_left;
-				Area_Q4=Area_right;
-			if Area_Lower==0:
-				Area_Q1=Area_right;
-				Area_Q2=Area_left;
-
-		elif min(Area_right,Area_left)==0:
-			Sector=-3
-			if Area_right==0:
-				Area_Q2=Area_Upper;
-				Area_Q3=Area_Lower;
-		
-			if Area_left==0:
-				Area_Q1=Area_Upper;
-				Area_Q4=Area_Lower;
-		
-
-		#yCxC=1.
-		#print 'out of hex'
-
-	else:
-		#Determine which sector within the hexagon you are in. (sectors 1 to 6 go counter clockwise starting with top right)
-		if (H1==True):  #Bottom half
-			if V1:
-				#if W1==False:
-				if ((y0+(sqrt(3)*(x0+S)))<=0):
-					Sector=1;
-				else:
-					Sector=2;
-			elif (V1==False) & (V2==True):
-				Sector=3;
-			else:  
-				#if (W3==True):
-				if ((y0-(sqrt(3)*(x0-S)))>=0):
-					Sector=4;
-				else:
-					Sector=5;
-		else:  #Bottom half
-			if V1:
-				#if W6==False:
-				if ((y0 -(sqrt(3)*(x0+S)))>=0):
-					Sector=10;
-				else:
-					Sector=9;
-			elif (V1==False) & (V2==True):
-				Sector=8;
-			else:  
-				#if (W4==True):
-				if ((y0+(sqrt(3)*(x0-S)))<=0):
-					Sector=7;
-				else:
-					Sector=6;
-
-		#print Sector
-
-		#If the hexagon is in Sector 1,3,4 or 6, then the intersetion of the hexagon and the corresponding sector forms a baby triangle
-		#If the hexagon is in Sector 2,5 then the intersetion of the hexagon and the corresponding sector forms a baby trapesoid
-		if Sector==2 or Sector==4  or Sector==7 or Sector==9:
-			Baby_triangle=(1/(2*sqrt(3)))*((-abs(y0)+(sqrt(3)*(S-abs(x0))))**2);
-		else:
-			#Baby_trap= (H-abs(y0)) * ((-H-abs(y0)+(2*sqrt(3)*(S-abs(x0))))/(2*sqrt(3)));  
-			Baby_trap=(H-abs(y0))*((S-abs(x0) - ((H+abs(y0))/(2*sqrt(3))))) ;
-
-		#Finally, we assign the correct areas in each quadrant (Q1,Q2,Q3,Q4), depending on which sector you are in.
-		C1=0;C2=0;C3=0;C4=0;
-
-		#Corner cases
-		if Sector==2:
-			Area_Q1=Baby_triangle;
-			Area_Q2=Area_Upper-Area_Q1
-			Area_Q3=Area_left-Area_Q2
-			Area_Q4=Area_right-Area_Q1
-
-		if Sector==4:
-			Area_Q2=Baby_triangle;
-			Area_Q1=Area_Upper-Area_Q2
-			Area_Q3=Area_left-Area_Q2
-			Area_Q4=Area_right-Area_Q1
-
-		if Sector==7:
-			Area_Q3=Baby_triangle;
-			Area_Q2=Area_left-Area_Q3
-			Area_Q1=Area_Upper-Area_Q2
-			Area_Q4=Area_right-Area_Q1
-
-		if Sector==9:
-			Area_Q4=Baby_triangle;
-			Area_Q1=Area_right-Area_Q4
-			Area_Q2=Area_Upper-Area_Q1
-			Area_Q3=Area_left-Area_Q2
-	
-		#Center cases
-		if Sector==3:
-			if x0<=0:
-				Area_Q1=Baby_trap;
-				Area_Q2=Area_Upper-Area_Q1;
-				Area_Q3=Area_left-Area_Q2;
-				Area_Q4=Area_right-Area_Q1;
-			else:
-				Area_Q2=Baby_trap;
-				Area_Q1=Area_Upper-Area_Q2;
-				Area_Q3=Area_left-Area_Q2;
-				Area_Q4=Area_right-Area_Q1;
-			
-		if Sector==8:
-			if x0<=0:
-				Area_Q4=Baby_trap;
-				Area_Q3=Area_Lower-Area_Q4;
-				Area_Q1=Area_right-Area_Q4;
-				Area_Q2=Area_Upper-Area_Q1;
-			else:
-				Area_Q3=Baby_trap;
-				Area_Q4=Area_Lower-Area_Q3;
-				Area_Q1=Area_right-Area_Q4;
-				Area_Q2=Area_Upper-Area_Q1;
-
-		#Outside triangle cases:
-		if Sector==1:
-			Area_Q1=0;
-			Area_Q2=Area_Upper;
-			Area_Q4=Area_right;
-			Area_Q3=Area_left-Area_Q2;
-		
-		if Sector==5:
-			Area_Q2=0;
-			Area_Q1=Area_Upper;
-			Area_Q3=Area_left;
-			Area_Q4=Area_Lower-Area_Q3;
-
-		if Sector==6:
-			Area_Q3=0;
-			Area_Q2=Area_left;
-			Area_Q4=Area_Lower;
-			Area_Q1=Area_right-Area_Q4;
-		
-		if Sector==10:
-			Area_Q4=0;
-			Area_Q3=Area_Lower;
-			Area_Q1=Area_right;
-			Area_Q2=Area_left-Area_Q3;
-
-		#print x0,y0,Sector
-	return [Area_hex, Area_Q1, Area_Q2, Area_Q3, Area_Q4]
-
 def spread_mass_to_ocean(i,j,mass_on_ocean,x,y,Area,Mass,element_type,grid_area):
 		#Note that the x,y coming into this routine are the position within a cell (from 0 to 1), with 0.5,0.5 being in the center of the cell.
 
@@ -844,6 +616,9 @@ def spread_mass_to_ocean(i,j,mass_on_ocean,x,y,Area,Mass,element_type,grid_area)
 		#if False:#element_type=='hexagon':
 			H = min(( (np.sqrt(Area/(2*sqrt(3)))  / np.sqrt(grid_area))),1) ;  #Non dimensionalize element length by grid area. (This gives the non-dim Apothen of the hexagon)
 			S=(2/np.sqrt(3))*H #Side of the hexagon
+			if S>0.5:
+				print 'Elements must be smaller than a whole gridcell', 'i.e.: S= ' , S , '>=0.5'
+				halt
 
 			#Subtracting the position of the nearest corner from x,y
 			origin_x=1 ; origin_y=1
@@ -855,7 +630,8 @@ def spread_mass_to_ocean(i,j,mass_on_ocean,x,y,Area,Mass,element_type,grid_area)
 			x0=(x-origin_x) #Position of the hexagon center, relative to origin at the nearest vertex
 			y0=(y-origin_y)
 			
-			(Area_hex, Area_Q1, Area_Q2, Area_Q3, Area_Q4)= Divide_hexagon_into_4_quadrants(x0,y0,H)
+			#(Area_hex, Area_Q1, Area_Q2, Area_Q3, Area_Q4)= Divide_hexagon_into_4_quadrants_old(x0,y0,H)
+			(Area_hex, Area_Q1, Area_Q2, Area_Q3, Area_Q4)= Hexagon_into_quadrants_using_triangles(x0,y0,H,0.)
 			if min(min(Area_Q1,Area_Q2),min(Area_Q3, Area_Q4)) <0:
 				print 'Yolo'
 				print x0,y0,H
@@ -903,18 +679,19 @@ def spread_mass_to_ocean(i,j,mass_on_ocean,x,y,Area,Mass,element_type,grid_area)
 		#Check that this is true
 		if abs(yCxC-(1.-( ((yDxL+yUxR)+(yDxR+yUxL)) + ((yCxL+yCxR)+(yDxC+yUxC)) )))>0.001:
 			print 'All the mass is not being used!!!'
-			print W1 , W2 , W3 , W4 , W5 , W6
-			print Area_Upper, Area_Lower, Area_right, Area_left
-			print Area_Q1, Area_Q2, Area_Q3, Area_Q4
-			print 'Total area= ',(Area_Q1+Area_Q2+Area_Q3+Area_Q4), Sector
+			#print W1 , W2 , W3 , W4 , W5 , W6
+			#print Area_Upper, Area_Lower, Area_right, Area_left
+			print 'Areas: ',Area_hex,Area_hex*Area_Q1, Area_hex*Area_Q2, Area_hex*Area_Q3, Area_hex*Area_Q4
+			print 'x0=',x0, 'y0=',y0, 'H=', H
+			print 'Total area= ',(Area_Q1+Area_Q2+Area_Q3+Area_Q4)#, Sector
 			
-			if W1==False and W2==True:
-				print W1, W2
-				print 'Stop the party!'
-				print W1, W2, W3, W4, W5, W5
-				print x0, y0
-				print H, S
-				halt
+			#if W1==False and W2==True:
+			#	print W1, W2
+			#	print 'Stop the party!'
+			#	print W1, W2, W3, W4, W5, W5
+			#	print x0, y0
+			#	print H, S
+			#	halt
 			#print 'Total added= ',  yCxC, (1.-( ((yDxL+yUxR)+(yDxR+yUxL)) + ((yCxL+yCxR)+(yDxC+yUxC)) )) , abs(yCxC-(1.-( ((yDxL+yUxR)+(yDxR+yUxL)) + ((yCxL+yCxR)+(yDxC+yUxC)) )))
 
 
@@ -1021,7 +798,7 @@ def regrid_iceberg_thickness(lat,lon,Number_of_bergs,thickness,mass,h_ice,x,y,rh
 def main():
 
 	#Flags
-	save_restart_files=False
+	save_restart_files=True
 	Convert_to_lat_lon=False
 	input_is_cartesian=True
 
@@ -1035,20 +812,22 @@ def main():
 	Convert_axes_to_lat_lon=False
 	only_choose_one_berg=False  ; chosen_berg_num=1
 	Create_icebergs_bonds=False
-	scale_the_grid_to_lat_lon=False  #Remember to change this back when providing fields for Isomip
+	scale_the_grid_to_lat_lon=True  #Remember to change this back when providing fields for Isomip
 	break_some_bonds=False
 	adjust_lat_ref=True
 	set_all_thicknesses_to_one=True
 	Interpolate_from_four_corners=False
 	regrid_icebergs_onto_grid=True
+	Switch_regridding_element_type=False
 
 	#element_type='square' #'hexagonal'
 	element_type='hexagon'
 
 	#Which experiment
-	#Ice_geometry_source='ISOMIP'           ; Convert_to_lat_lon=False       ; input_is_cartesian=True  
-	Ice_geometry_source='ISOMIP_reduced'   ; Convert_to_lat_lon=False       ; input_is_cartesian=True    #does not really work that well. Not sure why. 
+	Ice_geometry_source='ISOMIP'   ; Convert_to_lat_lon=False       ; input_is_cartesian=True ; 
 	#Ice_geometry_source='Weddell'     ; Convert_to_lat_lon=True        ; input_is_cartesian=False
+
+	ISOMIP_reduced=True  #Reduced uses 2X2 grid, not reduced uses 1X1 grid
 
 	ISOMIP_ice_geometry_filename='input_files/Isomip_ice_geometry.nc'
 	ISOMIP_reduced_ice_geometry_filename='input_files/isomip_ice_shelf1.nc'
@@ -1060,7 +839,7 @@ def main():
 	#Radius=0.25*1000
 	#Radius=sqrt(3)/2.*1000
 	#Radius=1.*1000
-	Radius=0.8*1000.
+	Radius=0.5*1000.  #Hexagon only valid for S<half gridcell.  (about 0.85 using 2km)
 	print 'Radius = ', Radius
 	rho_ice=850.
 	mass_scaling=1.
@@ -1075,16 +854,18 @@ def main():
 	#N= 5  # Number of rows in iceberg
 	#M= 4   # Number of columns in iceberg
 
+	print 'Element type= ', element_type, ';  Switched_regridding= ', Switch_regridding_element_type
+
 	#####################################################################################
 	#####################################################################################
 
 	if  Ice_geometry_source=='ISOMIP':
-		lon_init=0  ; lat_init=-70.  #latitude  of bottom left corner of iceberg
-		(x,y,ice_mask,h_ice)=load_ISOMIP_ice_geometry(ISOMIP_ice_geometry_filename,buffer_number)
-
-	if  Ice_geometry_source=='ISOMIP_reduced':
-		lon_init=0  ; lat_init=-70.  #latitude  of bottom left corner of iceberg
-		(x,y,ice_mask,h_ice)=load_ISOMIP_reduced_ice_geometry(ISOMIP_reduced_ice_geometry_filename,buffer_number)
+		if ISOMIP_reduced==False:
+			lon_init=0  ; lat_init=-70.  #latitude  of bottom left corner of iceberg
+			(x,y,ice_mask,h_ice)=load_ISOMIP_ice_geometry(ISOMIP_ice_geometry_filename,buffer_number)
+		else:
+			lon_init=0  ; lat_init=-70.  #latitude  of bottom left corner of iceberg
+			(x,y,ice_mask,h_ice)=load_ISOMIP_reduced_ice_geometry(ISOMIP_reduced_ice_geometry_filename,buffer_number)
 	
 	if  Ice_geometry_source=='Weddell':
 		lon_init=-32.9  ; lat_init=-70.  #latitude  of bottom left corner of iceberg
@@ -1127,6 +908,11 @@ def main():
 		if scale_the_grid_to_lat_lon==True:
 			print 'Regridding should be run with scale_the_grid_to_lat_lon off'
 		else:
+			if Switch_regridding_element_type==True:
+				if element_type=='square':
+					element_type='hexagon'
+				else:
+					element_type='square'
 			regrid_iceberg_thickness(lat,lon,Number_of_bergs,thickness,mass,h_ice,x,y,rho_ice,element_type)
 
 
@@ -1141,7 +927,7 @@ def main():
 	#x0=-0.31580
 	#y0=0.2
 	#H=0.3
-	#(Area_hex, Area_Q1, Area_Q2, Area_Q3, Area_Q4)= Divide_hexagon_into_4_quadrants(x0,y0,H)
+	#(Area_hex, Area_Q1, Area_Q2, Area_Q3, Area_Q4)= Divide_hexagon_into_4_quadrants_old(x0,y0,H)
 	#print x0,y0,H
 	#print Area_hex, Area_Q1, Area_Q2, Area_Q3, Area_Q4
 	
