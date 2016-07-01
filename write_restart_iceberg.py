@@ -39,7 +39,7 @@ def Create_iceberg_restart_file(f,g,Number_of_bergs, Number_of_bonds,lon,lat,thi
 		for attname in ncvar.ncattrs():  
 			setattr(var,attname,getattr(ncvar,attname))
 		#Finally copy the variable data to the new created variable
-		var[:] = ncvar[0]
+		#var[:] = ncvar[0]  Remove this. Not sure what it does.
 		
 		if varname=='i':
 			var[:]=Number_of_bergs
@@ -52,7 +52,8 @@ def Create_iceberg_restart_file(f,g,Number_of_bergs, Number_of_bonds,lon,lat,thi
 		if varname=='uvel' or varname=='vvel' or varname=='uvel_old' or varname=='vvel_old' or varname=='axn' or varname=='ayn'\
 		or varname=='bxn' or varname=='byn' or  varname=='halo_berg' or varname=='heat_density' or varname=='lon_old' or varname=='lat_old' \
 		or varname=='mass_of_bits' or varname=='start_mass' or  varname=='start_day' or varname=='start_year' or varname=='start_lon' \
-		or varname=='start_lat' or varname=='start_mass' or  varname=='start_day' or varname=='start_year' or varname=='start_lon' or varname=='lat_old' :
+		or varname=='start_lat' or varname=='start_mass' or  varname=='start_day' or varname=='start_year' or varname=='start_lon' or varname=='lat_old' \
+		or varname=='static_berg':
 			var[:]=0
 
 		if varname=='mass_scaling':
@@ -179,9 +180,18 @@ def plotting_iceberg_positions_and_bonds(lat,lon,first_berg_lat,first_berg_lon,o
 	plt.show()
 
 
+def calculate_element_area(element_type,Radius):
+        if element_type=='square':
+                element_area=(2*Radius)**2
+        elif element_type=='hexagon':
+                element_area=(3.*np.sqrt(3.)/2.)*((4./3.)*(Radius)**2) #Area of hexagon around circle (used for packing)  
+                #Another derivation uses innner hexagon with two more triangles added, which is a 1/6 of the hexagon area each (two since there are 6, shared by 3 each)
+                #element_area=(4./3.)*H_i, where H_i=(3.*np.sqrt(3.)/2.)*((Radius)**2)  is the area of the inner hexagon (with sides equal to the radius)
+
+        return element_area
 
 
-def Define_iceberg_positions(N,M ,lon_init,lat_init,Radius,R_earth,convert_to_lat_lon,scale_the_grid_to_lat_lon):
+def Define_iceberg_positions(N,M ,lon_init,lat_init,Radius,R_earth,convert_to_lat_lon,scale_the_grid_to_lat_lon,element_type, thickness,rho_ice):
 	dx_berg=[]  #x distance in cartesian of berg from lon_init
 	dy_berg=[]  #y distance in cartesian of berg from lat_init
 	dlon_berg=[] #x distance in lon of berg from lon_init
@@ -190,18 +200,49 @@ def Define_iceberg_positions(N,M ,lon_init,lat_init,Radius,R_earth,convert_to_la
 	lat=[] #Latitude of iceberg
 	iceberg_num=[] #ID of iceberg
 
-	berg_count=0
-	for j in range(M):
-		x_start=(j%2)*Radius
-		y_start=np.sqrt(3)*Radius*j
 
-		for i in range(N):
+
+
+	berg_count=0
+	#for j in range(N):
+        for i in range(M):
+		if element_type=='square':
+			x_start=Radius+(2*Radius*i)
+                        y_start=(Radius)
+                        #y_start=(Radius)+(2*Radius*j)
+                else:
+                        #x_start=(Radius)+(((j%2)*Radius))
+                        #y_start=(Radius)+(np.sqrt(3)*Radius*j)
+                        y_start=(Radius)+(((i%2)*Radius))
+                        x_start=(Radius)+(np.sqrt(3)*Radius*i)
+
+		#for i in range(M):
+        	for j in range(N):
+                        #x_val=x_start+(2*i*Radius)  ; y_val=y_start
+                        y_val=y_start+(2*j*Radius)  ; x_val=x_start
 			berg_count=berg_count+1
 			iceberg_num.append(berg_count)
-			dx_berg.append(x_start+(2*i*Radius))
-			dy_berg.append(y_start)
+			dx_berg.append(x_val)
+			dy_berg.append(y_val)
+
+	#Old version
+	#berg_count=0
+	#for j in range(M):
+	#	x_start=(j%2)*Radius
+	#	y_start=np.sqrt(3)*Radius*j
+	#	for i in range(N):
+	#		berg_count=berg_count+1
+	#		iceberg_num.append(berg_count)
+	#		dx_berg.append(x_start+(2*i*Radius))
+	#		dy_berg.append(y_start)
 
 	Number_of_bergs=berg_count
+
+	#Calculating iceberg properties (assuming constant thickness and area)
+	element_area=calculate_element_area(element_type,Radius)
+        width=np.sqrt(element_area)
+	thickness=thickness
+	mass=thickness*rho_ice*element_area
 
 	#Defining lon lat positions:
 	#dlat_berg=(180/np.pi)*(1/R_earth)*dy_berg
@@ -230,7 +271,7 @@ def Define_iceberg_positions(N,M ,lon_init,lat_init,Radius,R_earth,convert_to_la
 			lon.append(lon_init+dx_berg[i])
 			lat.append(lat_init+dy_berg[i])
 
-	return (Number_of_bergs,lon,lat,iceberg_num,dx_berg,dy_berg,Radius)
+	return (Number_of_bergs,lon,lat,iceberg_num,dx_berg,dy_berg,Radius, width,mass)
 
 def Define_iceberg_bonds(Number_of_bergs,iceberg_num,lat,lon,dx_berg, dy_berg,Radius):
 	
@@ -292,8 +333,8 @@ def main():
 
 
 	#Parameters
-	thickness=100.
-	Radius=0.5*1000
+	thickness=10.
+	Radius=0.8*1000
 	rho_ice=850.
 	mass_scaling=1.
 	R_earth=6360.*1000.
@@ -301,22 +342,27 @@ def main():
 	#Derived quanities
 	#width=np.sqrt(np.pi*(Radius**2))
 	#mass=thickness*rho_ice*np.pi*(Radius**2)  
-	width=2*Radius
-	mass=thickness*rho_ice*((2*Radius)**2)  
+	#width=2*Radius
+	#mass=thickness*rho_ice*((2*Radius)**2)  
 
 	#Let interactive radius be different from radius for testing the model:
 	IA_scaling=1.#(1./2.)
 	Radius=Radius/IA_scaling
 
 	#Here we create the lons and lats for a tabular iceberg
-	N= 1  # Number of rows in iceberg
-	M= 1   # Number of columns in iceberg
+	N= 30  # Number of rows in iceberg
+	M= 30   # Number of columns in iceberg
 	lon_init=-32.9  #longitude of bottom left corner of iceberg
 	lat_init=-70.  #latitude  of bottom left corner of iceberg
 	x_init=100  #For ISOMIP Case
-	y_init=20  #For ISOMIP Case
+	y_init=3  #For ISOMIP Case
 	#Experiment_name='Weddell'  ;  Convert_to_lat_lon=True     ; scale_the_grid_to_lat_lon=False
 	Experiment_name='ISOMIP'  ;  convert_to_lat_lon=False      ; scale_the_grid_to_lat_lon=True
+
+
+	#element_type='square' #'hexagonal'
+        element_type='hexagon'
+
 
 	#Defining lon_init, lat_init
 	if Experiment_name=='ISOMIP':
@@ -326,7 +372,8 @@ def main():
 			lon_init=x_init  ; lat_init=y_init
 
 	#Define the positions of the icebergs
-	(Number_of_bergs,lon,lat,iceberg_num,dx_berg, dy_berg,Radius)= Define_iceberg_positions(N,M ,lon_init,lat_init,Radius,R_earth,convert_to_lat_lon,scale_the_grid_to_lat_lon)
+	(Number_of_bergs,lon,lat,iceberg_num,dx_berg, dy_berg,Radius,width,mass)\
+			= Define_iceberg_positions(N,M ,lon_init,lat_init,Radius,R_earth,convert_to_lat_lon,scale_the_grid_to_lat_lon,element_type, thickness,rho_ice)
 
 	#Define the positions of the iceberg bonds
 	(Number_of_bonds, first_berg_num,first_berg_ine,first_berg_jne,first_berg_lat,first_berg_lon, other_berg_num,other_berg_ine, other_berg_jne,other_berg_lat,other_berg_lon)=\
