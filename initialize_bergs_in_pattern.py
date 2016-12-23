@@ -17,6 +17,188 @@ from hexagon_area import Divide_hexagon_into_4_quadrants_old
 from hexagon_area import Hexagon_into_quadrants_using_triangles
 
 
+def parseCommandLine():
+	"""
+	Parse the command line positional and optional arguments.
+	This is the highest level procedure invoked from the very end of the script.
+	"""
+
+	parser = argparse.ArgumentParser(description=
+	'''
+	Generate files for iceberg and bond restart files, matching given ice thickness fields.
+	''',
+	epilog='Written by Alon Stern, Dec. 2016.')
+
+	#Flags
+	parser.add_argument('-save_restart_files', type=bool, default=True,
+		          help=''' Writes an iceberg restart file,  icebergs.res ''')
+
+	parser.add_argument('-save_new_h_ice_file', type=bool, default=True,
+		          help=''' Writes a new gridded ice thickness file, which is what the ice thickness after the berg mass is interpolated back onto the grid''')
+
+	parser.add_argument('-Convert_to_lat_lon', type=bool, default=False,
+		          help=''' Converts the iceberg positions to lat / lon coordinates  ''')
+
+	parser.add_argument('-input_is_cartesian', type=bool, default=True,
+		          help=''' The positions in the ice thickness input file is given in cartesian coordiantes''')
+
+	#Iceberg setup flags
+	parser.add_argument('-only_choose_one_berg', type=bool, default=False,
+		          help=''' When true, only one iceberg (with number chosen_berg_num) is written to icebergs.res. This is for debugging  ''')
+
+	parser.add_argument('-chosen_berg_num', type=int, default=1,
+		          help='''When only_choose_one_berg=True, then only the iceberg with this number is written to the icebergs.res file  ''')
+
+	parser.add_argument('-scale_the_grid_to_lat_lon', type=bool, default=False,
+		          help=''' This option scales dimensions by a fixed amount. Option should be removed   ''')
+
+	parser.add_argument('-adjust_lat_ref', type=bool, default=True,
+		          help=''' This option is only used when Convert_to_lat_lon is true. If true, then the reference latitudes depends on iceberg position.\
+					  This still needs to be tested using lat lon test cases.''')
+
+	parser.add_argument('-set_all_thicknesses_to_one', type=bool, default=False,
+		          help=''' Sets all non-zero ice thickness to Th_prescibed (default 1), useful for debugging.  ''')
+
+	parser.add_argument('-Th_prescribed', type=real, default=1.0,
+		          help='''Prescibed ice thickness used when the flag set_all_thicknesses_to_one=True   ''')
+
+	parser.add_argument('-Interpolate_from_four_corners', type=bool, default=True,
+		          help=''' The thickness of an iceberg is calcaulated from the 4 corners of the gridded thickness. When flag is false, the near thickness is used  ''')
+
+	parser.add_argument('-Switch_x_and_y_to_rotate_90', type=bool, default=False,
+		          help=''' Rotates the whole domain by 90 degrees by switching lat and lon of icebergs.  ''')
+
+	parser.add_argument('-set_all_domain_to_ice', type=bool, default=False,
+		          help=''' Sets the ice thickness = Th_prescibed (default 1) throughout the entire domain. Applied only when flag set_all_thicknesses_to_one=True   ''')
+
+	parser.add_argument('-Use_default_radius', type=bool, default=False,
+		          help=''' Calculates an appropriate ice element radius based on the ocean grid spacing.   ''')
+
+	parser.add_argument('-Remove_stationary_bergs', type=bool, default=False,
+		          help=''' All stationary icebergs are removed.  ''')
+
+	#Static vs non-static flags
+	parser.add_argument('-set_all_bergs_static_by_default', type=bool, default=True,
+			help='''Bergs are static unless instructed otherwise (e.g.: after applying calving)   ''')
+
+	parser.add_argument('-set_some_bergs_static_by_default', type=bool, default=False,
+		          help=''' Bergs in part of the domain are set to static by default (see subroutine for details)  ''')
+
+	parser.add_argument('-Make_icebergs_non_static_later', type=bool, default=False,
+			help=''' Run subroutine which makes some icebergs non-static later (eg: icebergs around calved tabular icebergs).  Note that bonds are \
+					only created for non_static, so by making bergs non_static later, it means they can move, but are not bonded.  ''')
+
+	#Mass spreadng flags
+	parser.add_argument('-Switch_regridding_element_type', type=bool, default=False,
+		          help=''' When true, element shape is switched from hexagon to square (and visa versa) before regridding. Used in debugging to see if having \
+			  the wrond elemnt type makes a bid difference. Maybe this option should be removed(?)''')
+
+	parser.add_argument('-Fill_in_the_boundaries', type=bool, default=True,
+		          help=''' Adds extra (static)  ice elements at the edges of the domain when the ice shelf extends right up until the boundaries of the domain.\
+					  Only used with hexagonal ice elements (for now).''')
+
+	parser.add_argument('-regrid_icebergs_onto_grid', type=bool, default=True,
+		          help=''' After icebergs have been defined, the iceberg mass is interpolated back onto the ocean grid  ''')
+
+
+	#Plotting flags - Only affect how the ice elements are plotted and does not affect files created by this script
+	parser.add_argument('-Run_plotting_subroutine', type=bool, default=True,
+		          help=''' Subrouting is run plots icebergs and ice thickness. All other plotting flags require this to be true.  ''')
+
+	parser.add_argument('-plot_circles', type=bool, default=False,
+		          help=''' Circles are plotted to scale which show how large each ice element is. (Useful when converting to lat lon)  ''')
+
+	parser.add_argument('-plot_ice_mask', type=bool, default=False,
+		          help=''' The ice mask (showing where ice shelf is present) is plotted under iceberg positions. Option may be removed.  ''')
+
+	parser.add_argument('-plot_ice_thickness', type=bool, default=True,
+		          help=''' The ice thickness is plotted under iceberg positions   ''')
+
+	parser.add_argument('-plot_icebergs_positions', type=bool, default=True,
+		          help='''  Positions of ice elements are plotted  ''')
+
+	parser.add_argument('-plot_h_ice_new', type=bool, default=True,
+		          help='''  The newly interpolated ice thickness is plotted under iceberg positions ''')
+	
+	parser.add_argument('-plot_bonds', type=bool, default=False,
+		          help=''' Bonds are plotted between the ice elements   ''')
+
+	#Bond related flags
+	parser.add_argument('-Create_icebergs_bonds', type=bool, default=True,
+		          help=''' Bonds are created between icebergs  ''')
+
+	parser.add_argument('-break_some_bonds', type=bool, default=True,
+		          help=''' After the bonds have been set up, some are broken. This simulates a iceberg / ice shelf calving.\
+					  Note that this flag is also used to make a calving event even if bonds are not used since \
+					  the "calving" process also sets some icebergs to static and others to non-static''')
+
+	parser.add_argument('-Allow_bonds_for_static_iceberg', type=bool, default=False,
+		          help=''' If True then bonds are allowed for ice elements which are static.   ''')
+
+	parser.add_argument('-Allow_bonds_with_boundary_bergs', type=bool, default=False,
+		          help=''' When true, bonds are allowed to form with elements close to the boundary. \
+					  When false, bonds are allowed for bergs closer with i,j < N_bergs_before_bd.\
+					  This option is a little confusing and might need to be removed (>)''')
+
+	parser.add_argument('-element_type', type=str, default='hexagon',
+			help='''Shape of element used in mass spreading. Options are: 'hexagon' or 'square'   ''')
+
+
+	#Experimental setup flags
+	parser.add_argument('-Ice_geometry_source', type=str, default='ISOMIP',
+			help=''' Name of experiment which is being run. Options are 'ISOMIP', 'Generic' and 'Weddell'\
+					These experiments override some of the flags above and have standary input files  (see below).\
+					This will be made more general later so that ice thickness files are passed into the script with standarized formate through driver.\
+					''')
+
+	parser.add_argument('-ISOMIP_ice_geometry_filename', type=str, default='input_files/Isomip_ice_geometry.nc',
+			help=''' Ice thickness from the ISOMIP experiment, given on ice grid, rather than ocean grid.  ''')
+
+	parser.add_argument('-ISOMIP_reduced_ice_geometry_filename', type=str, default='input_files/Ocean1_3D_no_calving_trimmed.nc',
+			help=''' Ice thickness from ISOMIP experiment, given on ocean grid. Later all input files will be made to have this format\
+					(or to specify if they are on the ice grid, what format the ocean should have)''')
+
+	parser.add_argument('-Weddell_ice_geometry_filename', type=str, default='input_files/Bedmap2_gridded_subset_Weddell_Sea_Region.nc',
+			help='''  Ice thickness from the ice shelves in the Weddell Sea, given on ice grid, rather than ocean grid.  ''')
+
+	parser.add_argument('-Generic_ice_geometry_filename', type=str, \
+			default='/lustre/f1/unswept/Alon.Stern/MOM6-examples_Alon/ice_ocean_SIS2/Drifting_tabular/python_scripts/output_files/Ice_shelf_file.nc',
+			help=''' Ice thickness used in a generic setup.   ''')
+
+
+	parser.add_argument('-ISOMIP_reduced', type=bool, default=True,
+			help=''' Flag which specifies that we are using the reduced ISOMIP file (on the ocean grid), rather than geomety on the ice grid. \
+					Reduced uses 2X2 grid, not reduced uses 1X1 grid \
+					This should be made more general later.''')
+
+	#Parameters
+	parser.add_argument('-Radius', type=real, default='850.0',
+			help='''Radius of ice element (m). This is overriden if Use_default_radius=True\
+					Note that Hexagon only valid if the Radius, S< half gridcell  (about 0.85 using 2km grid)''')
+
+	parser.add_argument('-rho_ice', type=real, default=918.0,
+			help=''' Density of icebergs (kg/m^3)  ''')
+
+	parser.add_argument('-gravity', type=real, default=9.8,
+			help=''' Gravitational acceleration  (m/s^2)''')
+
+	parser.add_argument('-mass_scaling', type=real, default=1.0,
+			help=''' Number of icebergs represented by one ice element  ''')
+
+	parser.add_argument('-R_earth', type=real, default=6360000.,
+			help=''' Radius of the earch (m) - used in Lat/Lon conversions.   ''')
+
+	parser.add_argument('-buffer_number', type=int, default=0,
+			help=''' Amount of points from the boundaries where ice thickness is set to zero for debugging. This should be removed.  ''')
+
+	parser.add_argument('-IA_scaling', type=int, default=1.,
+			help='''  A scaling parameter which allows the interactive radius be different from radius for testing the bonds.\
+					(This has not been used in a long while, and perhaps should be removed)''')
+
+	optCmdLineArgs = parser.parse_args()
+	return optCmdLineArgs
+	
+
 def Create_iceberg_restart_file(Number_of_bergs, lon,lat,thickness,width,mass,mass_scaling,iceberg_num,Ice_geometry_source,static_berg):
 	
 	print 'Writing iceberg restart files, with ' , Number_of_bergs  , 'icebergs..'
@@ -691,7 +873,7 @@ def create_clipped_icethickness_file(h_ice,area,mass,grid_area,gravity,Ice_geome
         g.close()
 
 
-def load_ISOMIP_reduced_ice_geometry(ice_filename,buffer_number,topog_filename):
+def load_ISOMIP_reduced_ice_geometry(ice_filename,buffer_number):
 	with nc.Dataset(ice_filename) as file:
 		h_ice = file.variables['thick'][:,:]
 		area =  file.variables['area'][:,:]
@@ -1182,7 +1364,7 @@ def convert_input_to_catesian_coordinates(lon,lat,ice_mask,h_ice,R_earth,dx):
 ##########################################################  Main Program   #########################################################################
 ####################################################################################################################################################
 
-def main():
+def main(args):
 
 	#Flags
 	save_restart_files=True
@@ -1212,7 +1394,7 @@ def main():
 	regrid_icebergs_onto_grid=True
 
 	#Plotting flags
-	plotting_bergs_over_grid=True
+	Run_plotting_subroutine=True
 	plot_circles=False
 	plot_ice_mask=False
 	plot_ice_thickness=True
@@ -1242,12 +1424,11 @@ def main():
 	#ISOMIP_reduced_ice_geometry_filename='input_files/Ocean1_3D_no_calving.nc'
 	ISOMIP_reduced_ice_geometry_filename='input_files/Ocean1_3D_no_calving_trimmed.nc'
 	Weddell_ice_geometry_filename='input_files/Bedmap2_gridded_subset_Weddell_Sea_Region.nc'
-	ISOMIP_topography_filename='input_files/Isomip_topog.nc'
 	Generic_ice_geometry_filename='/lustre/f1/unswept/Alon.Stern/MOM6-examples_Alon/ice_ocean_SIS2/Drifting_tabular/python_scripts/output_files/Ice_shelf_file.nc'
 
 
 	#Parameters
-	thickness=100.
+	#thickness=100.
 	#Radius=0.25*1000
 	#Radius=sqrt(3)/2.*1000
 	#Radius=1.*1000
@@ -1261,10 +1442,6 @@ def main():
 	#Let interactive radius be different from radius for testing the model:
 	IA_scaling=1.#(1./2.)
 	Radius=Radius/IA_scaling
-
-	#Here we create the lons and lats for a tabular iceberg
-	#N= 5  # Number of rows in iceberg
-	#M= 4   # Number of columns in iceberg
 
 	if element_type=='square' and Interpolate_from_four_corners==True:
 		print 'Square packing with R dividing dx, works best with interpolation off.'
@@ -1283,9 +1460,8 @@ def main():
 			ice_filename=ISOMIP_ice_geometry_filename
 		else:
 			lon_init=0  ; lat_init=-70.  #latitude  of bottom left corner of iceberg
-			(x,y,ice_mask,h_ice)=load_ISOMIP_reduced_ice_geometry(ISOMIP_reduced_ice_geometry_filename,buffer_number,ISOMIP_topography_filename)
+			(x,y,ice_mask,h_ice)=load_ISOMIP_reduced_ice_geometry(ISOMIP_reduced_ice_geometry_filename,buffer_number)
 			ice_filename=ISOMIP_reduced_ice_geometry_filename
-		topog_filename=ISOMIP_topography_filename
 
 	if  Ice_geometry_source=='Weddell':
 		lon_init=-32.9  ; lat_init=-70.  #latitude  of bottom left corner of iceberg
@@ -1377,7 +1553,7 @@ def main():
 			create_clipped_icethickness_file(h_ice_new,New_area,New_mass,grid_area,gravity,Ice_geometry_source)
 
 	# Plotting the positions and bonds of the newly formed formation
-	if plotting_bergs_over_grid==True:
+	if Run_plotting_subroutine==True:
 		plotting_iceberg_positions(lat,lon,Number_of_bergs,R_earth,Radius,IA_scaling,Convert_to_lat_lon,\
 				plot_circles,h_ice,ice_mask,x,y,plot_ice_mask,plot_ice_thickness,thickness,plot_icebergs_positions,static_berg,h_ice_new,plot_h_ice_new)
 		if (plot_bonds==True) and (Create_icebergs_bonds):
@@ -1396,8 +1572,8 @@ def main():
 
 
 if __name__ == '__main__':
-	parseCommandLine()
-	main()
+	optCmdLineArgs=	parseCommandLine()
+	main(optCmdLineArgs)
 	#sys.exit(main())
 
 
