@@ -29,120 +29,124 @@ def parseCommandLine():
 	''',
 	epilog='Written by Alon Stern, Dec. 2016.')
 
+	#Adding an extra boolian type argument
+	#p = argparse.ArgumentParser()
+	parser.register('type','bool',str2bool) # add type keyword to registries
+	#p.add_argument('-b',type='bool')  # do not use 'type=bool'
+
 	#Flags
-	parser.add_argument('-save_restart_files', type=bool, default=True,
+	parser.add_argument('-save_restart_files', type='bool', default=True,
 		          help=''' Writes an iceberg restart file,  icebergs.res ''')
 
-	parser.add_argument('-save_new_h_ice_file', type=bool, default=True,
+	parser.add_argument('-save_new_h_ice_file', type='bool', default=True,
 		          help=''' Writes a new gridded ice thickness file, which is what the ice thickness after the berg mass is interpolated back onto the grid''')
 
-	parser.add_argument('-Convert_to_lat_lon', type=bool, default=False,
+	parser.add_argument('-Convert_to_lat_lon', type='bool', default=False,
 		          help=''' Converts the iceberg positions to lat / lon coordinates  ''')
 
-	parser.add_argument('-input_is_cartesian', type=bool, default=True,
+	parser.add_argument('-input_is_cartesian', type='bool', default=True,
 		          help=''' The positions in the ice thickness input file is given in cartesian coordiantes''')
 
 	#Iceberg setup flags
-	parser.add_argument('-only_choose_one_berg', type=bool, default=False,
+	parser.add_argument('-only_choose_one_berg', type='bool', default=False,
 		          help=''' When true, only one iceberg (with number chosen_berg_num) is written to icebergs.res. This is for debugging  ''')
 
 	parser.add_argument('-chosen_berg_num', type=int, default=1,
 		          help='''When only_choose_one_berg=True, then only the iceberg with this number is written to the icebergs.res file  ''')
 
-	parser.add_argument('-scale_the_grid_to_lat_lon', type=bool, default=False,
+	parser.add_argument('-scale_the_grid_to_lat_lon', type='bool', default=False,
 		          help=''' This option scales dimensions by a fixed amount. Option should be removed   ''')
 
-	parser.add_argument('-adjust_lat_ref', type=bool, default=True,
+	parser.add_argument('-adjust_lat_ref', type='bool', default=True,
 		          help=''' This option is only used when Convert_to_lat_lon is true. If true, then the reference latitudes depends on iceberg position.\
 					  This still needs to be tested using lat lon test cases.''')
 
-	parser.add_argument('-set_all_thicknesses_to_one', type=bool, default=False,
+	parser.add_argument('-set_all_thicknesses_to_one', type='bool', default=False,
 		          help=''' Sets all non-zero ice thickness to Th_prescibed (default 1), useful for debugging.  ''')
 
-	parser.add_argument('-Th_prescribed', type=real, default=1.0,
+	parser.add_argument('-Th_prescribed', type=float, default=1.0,
 		          help='''Prescibed ice thickness used when the flag set_all_thicknesses_to_one=True   ''')
 
-	parser.add_argument('-Interpolate_from_four_corners', type=bool, default=True,
+	parser.add_argument('-Interpolate_from_four_corners', type='bool', default=True,
 		          help=''' The thickness of an iceberg is calcaulated from the 4 corners of the gridded thickness. When flag is false, the near thickness is used  ''')
 
-	parser.add_argument('-Switch_x_and_y_to_rotate_90', type=bool, default=False,
+	parser.add_argument('-Switch_x_and_y_to_rotate_90', type='bool', default=False,
 		          help=''' Rotates the whole domain by 90 degrees by switching lat and lon of icebergs.  ''')
 
-	parser.add_argument('-set_all_domain_to_ice', type=bool, default=False,
+	parser.add_argument('-set_all_domain_to_ice', type='bool', default=False,
 		          help=''' Sets the ice thickness = Th_prescibed (default 1) throughout the entire domain. Applied only when flag set_all_thicknesses_to_one=True   ''')
 
-	parser.add_argument('-Use_default_radius', type=bool, default=False,
+	parser.add_argument('-Use_default_radius', type='bool', default=False,
 		          help=''' Calculates an appropriate ice element radius based on the ocean grid spacing.   ''')
 
-	parser.add_argument('-Remove_stationary_bergs', type=bool, default=False,
+	parser.add_argument('-Remove_stationary_bergs', type='bool', default=False,
 		          help=''' All stationary icebergs are removed.  ''')
 
-	#Static vs non-static flags
-	parser.add_argument('-set_all_bergs_static_by_default', type=bool, default=True,
+	#Static vs non-static flags (These are needed for calving away from Static shelf)
+	parser.add_argument('-set_all_bergs_static_by_default', type='bool', default=True,
 			help='''Bergs are static unless instructed otherwise (e.g.: after applying calving)   ''')
 
-	parser.add_argument('-set_some_bergs_static_by_default', type=bool, default=False,
+	parser.add_argument('-set_some_bergs_static_by_default', type='bool', default=False,
 		          help=''' Bergs in part of the domain are set to static by default (see subroutine for details)  ''')
 
-	parser.add_argument('-Make_icebergs_non_static_later', type=bool, default=False,
+	parser.add_argument('-Make_icebergs_non_static_later', type='bool', default=False,
 			help=''' Run subroutine which makes some icebergs non-static later (eg: icebergs around calved tabular icebergs).  Note that bonds are \
 					only created for non_static, so by making bergs non_static later, it means they can move, but are not bonded.  ''')
 
 	#Mass spreadng flags
-	parser.add_argument('-Switch_regridding_element_type', type=bool, default=False,
+	parser.add_argument('-Switch_regridding_element_type', type='bool', default=False,
 		          help=''' When true, element shape is switched from hexagon to square (and visa versa) before regridding. Used in debugging to see if having \
 			  the wrond elemnt type makes a bid difference. Maybe this option should be removed(?)''')
 
-	parser.add_argument('-Fill_in_the_boundaries', type=bool, default=True,
+	parser.add_argument('-Fill_in_the_boundaries', type='bool', default=True,
 		          help=''' Adds extra (static)  ice elements at the edges of the domain when the ice shelf extends right up until the boundaries of the domain.\
 					  Only used with hexagonal ice elements (for now).''')
 
-	parser.add_argument('-regrid_icebergs_onto_grid', type=bool, default=True,
+	parser.add_argument('-regrid_icebergs_onto_grid', type='bool', default=True,
 		          help=''' After icebergs have been defined, the iceberg mass is interpolated back onto the ocean grid  ''')
-
-
-	#Plotting flags - Only affect how the ice elements are plotted and does not affect files created by this script
-	parser.add_argument('-Run_plotting_subroutine', type=bool, default=True,
-		          help=''' Subrouting is run plots icebergs and ice thickness. All other plotting flags require this to be true.  ''')
-
-	parser.add_argument('-plot_circles', type=bool, default=False,
-		          help=''' Circles are plotted to scale which show how large each ice element is. (Useful when converting to lat lon)  ''')
-
-	parser.add_argument('-plot_ice_mask', type=bool, default=False,
-		          help=''' The ice mask (showing where ice shelf is present) is plotted under iceberg positions. Option may be removed.  ''')
-
-	parser.add_argument('-plot_ice_thickness', type=bool, default=True,
-		          help=''' The ice thickness is plotted under iceberg positions   ''')
-
-	parser.add_argument('-plot_icebergs_positions', type=bool, default=True,
-		          help='''  Positions of ice elements are plotted  ''')
-
-	parser.add_argument('-plot_h_ice_new', type=bool, default=True,
-		          help='''  The newly interpolated ice thickness is plotted under iceberg positions ''')
-	
-	parser.add_argument('-plot_bonds', type=bool, default=False,
-		          help=''' Bonds are plotted between the ice elements   ''')
-
-	#Bond related flags
-	parser.add_argument('-Create_icebergs_bonds', type=bool, default=True,
-		          help=''' Bonds are created between icebergs  ''')
-
-	parser.add_argument('-break_some_bonds', type=bool, default=True,
-		          help=''' After the bonds have been set up, some are broken. This simulates a iceberg / ice shelf calving.\
-					  Note that this flag is also used to make a calving event even if bonds are not used since \
-					  the "calving" process also sets some icebergs to static and others to non-static''')
-
-	parser.add_argument('-Allow_bonds_for_static_iceberg', type=bool, default=False,
-		          help=''' If True then bonds are allowed for ice elements which are static.   ''')
-
-	parser.add_argument('-Allow_bonds_with_boundary_bergs', type=bool, default=False,
-		          help=''' When true, bonds are allowed to form with elements close to the boundary. \
-					  When false, bonds are allowed for bergs closer with i,j < N_bergs_before_bd.\
-					  This option is a little confusing and might need to be removed (>)''')
 
 	parser.add_argument('-element_type', type=str, default='hexagon',
 			help='''Shape of element used in mass spreading. Options are: 'hexagon' or 'square'   ''')
 
+
+	#Plotting flags - Only affect how the ice elements are plotted and does not affect files created by this script
+	parser.add_argument('-Run_plotting_subroutine', type='bool', default=True,
+		          help=''' Subrouting is run plots icebergs and ice thickness. All other plotting flags require this to be true.  ''')
+
+	parser.add_argument('-plot_circles', type='bool', default=False,
+		          help=''' Circles are plotted to scale which show how large each ice element is. (Useful when converting to lat lon)  ''')
+
+	parser.add_argument('-plot_ice_mask', type='bool', default=False,
+		          help=''' The ice mask (showing where ice shelf is present) is plotted under iceberg positions. Option may be removed.  ''')
+
+	parser.add_argument('-plot_ice_thickness', type='bool', default=True,
+		          help=''' The ice thickness is plotted under iceberg positions   ''')
+
+	parser.add_argument('-plot_icebergs_positions', type='bool', default=True,
+		          help='''  Positions of ice elements are plotted  ''')
+
+	parser.add_argument('-plot_h_ice_new', type='bool', default=True,
+		          help='''  The newly interpolated ice thickness is plotted under iceberg positions ''')
+	
+	parser.add_argument('-plot_bonds', type='bool', default=False,
+		          help=''' Bonds are plotted between the ice elements   ''')
+
+	#Bond related flags
+	parser.add_argument('-Create_icebergs_bonds', type='bool', default=True,
+		          help=''' Bonds are created between icebergs  ''')
+
+	parser.add_argument('-break_some_bonds', type='bool', default=True,
+		          help=''' After the bonds have been set up, some are broken. This simulates a iceberg / ice shelf calving.\
+					  Note that this flag is also used to make a calving event even if bonds are not used since \
+					  the "calving" process also sets some icebergs to static and others to non-static''')
+
+	parser.add_argument('-Allow_bonds_for_static_iceberg', type='bool', default=False,
+		          help=''' If True then bonds are allowed for ice elements which are static.   ''')
+
+	parser.add_argument('-Allow_bonds_with_boundary_bergs', type='bool', default=False,
+		          help=''' When true, bonds are allowed to form with elements close to the boundary. \
+					  When false, bonds are allowed for bergs closer with i,j < N_bergs_before_bd.\
+					  This option is a little confusing and might need to be removed (>)''')
 
 	#Experimental setup flags
 	parser.add_argument('-Ice_geometry_source', type=str, default='ISOMIP',
@@ -166,37 +170,53 @@ def parseCommandLine():
 			help=''' Ice thickness used in a generic setup.   ''')
 
 
-	parser.add_argument('-ISOMIP_reduced', type=bool, default=True,
+	parser.add_argument('-ISOMIP_reduced', type='bool', default=True,
 			help=''' Flag which specifies that we are using the reduced ISOMIP file (on the ocean grid), rather than geomety on the ice grid. \
 					Reduced uses 2X2 grid, not reduced uses 1X1 grid \
 					This should be made more general later.''')
 
 	#Parameters
-	parser.add_argument('-Radius', type=real, default='850.0',
+	parser.add_argument('-Radius', type=float, default='850.0',
 			help='''Radius of ice element (m). This is overriden if Use_default_radius=True\
 					Note that Hexagon only valid if the Radius, S< half gridcell  (about 0.85 using 2km grid)''')
 
-	parser.add_argument('-rho_ice', type=real, default=918.0,
+	parser.add_argument('-rho_ice', type=float, default=918.0,
 			help=''' Density of icebergs (kg/m^3)  ''')
 
-	parser.add_argument('-gravity', type=real, default=9.8,
+	parser.add_argument('-gravity', type=float, default=9.8,
 			help=''' Gravitational acceleration  (m/s^2)''')
 
-	parser.add_argument('-mass_scaling', type=real, default=1.0,
+	parser.add_argument('-mass_scaling', type=float, default=1.0,
 			help=''' Number of icebergs represented by one ice element  ''')
 
-	parser.add_argument('-R_earth', type=real, default=6360000.,
+	parser.add_argument('-R_earth', type=float, default=6360000.,
 			help=''' Radius of the earch (m) - used in Lat/Lon conversions.   ''')
 
 	parser.add_argument('-buffer_number', type=int, default=0,
 			help=''' Amount of points from the boundaries where ice thickness is set to zero for debugging. This should be removed.  ''')
 
-	parser.add_argument('-IA_scaling', type=int, default=1.,
+	parser.add_argument('-IA_scaling', type=float, default=1.,
 			help='''  A scaling parameter which allows the interactive radius be different from radius for testing the bonds.\
 					(This has not been used in a long while, and perhaps should be removed)''')
 
 	optCmdLineArgs = parser.parse_args()
 	return optCmdLineArgs
+
+def str2bool(string):
+	if string.lower() in  ("yes", "true", "t", "1"):
+		Value=True
+	elif string.lower() in ("no", "false", "f", "0"):
+		Value=False
+	else:
+		print '**********************************************************************'
+		print 'The input variable ' ,str(string) ,  ' is not suitable for boolean conversion, using default'
+		print '**********************************************************************'
+
+		Value=None
+		return
+	
+	return Value
+
 	
 
 def Create_iceberg_restart_file(Number_of_bergs, lon,lat,thickness,width,mass,mass_scaling,iceberg_num,Ice_geometry_source,static_berg):
@@ -205,8 +225,14 @@ def Create_iceberg_restart_file(Number_of_bergs, lon,lat,thickness,width,mass,ma
 	# To copy the global attributes of the netCDF file  
 
 	#Input and output files	
-	f=Dataset('input_files/icebergs.res.nc','r') # r is for read only
-	g=Dataset('output_files/' + Ice_geometry_source + '_icebergs.res.nc','w') # w if for creating a file
+	#Create Empty restart file. This is later read so that the attributes can be used.
+	Empty_restart_filename='output_files/Empty_icebergs.res.nc'
+	create_empty_iceberg_restart_file(Empty_restart_filename)
+
+	#Read empty restart file
+	f=Dataset(Empty_restart_filename,'r') # r is for read only
+	#Write a new restart file
+	g=Dataset('output_files/' + Ice_geometry_source + '_icebergs.res.nc','w', format='NETCDF3_CLASSIC') # w if for creating a file
 
 	for attname in f.ncattrs():
 		    setattr(g,attname,getattr(f,attname))
@@ -276,6 +302,178 @@ def Create_iceberg_restart_file(Number_of_bergs, lon,lat,thickness,width,mass,ma
 	f.close()
 	g.close()
 
+def create_empty_iceberg_restart_file(Empty_restart_filename):
+
+	f = Dataset(Empty_restart_filename,'w', format='NETCDF3_CLASSIC')
+
+	i=f.createDimension('i', None)
+
+	lon=f.createVariable('lon','f4',('i'))
+	lon.long_name = "longitude" ;
+	lon.units = "degrees_E" ;
+	lon.checksum = "               0" ;
+
+	lat=f.createVariable('lat','f4',('i'))
+	lat.long_name = "latitude" ;
+	lat.units = "degrees_N" ;
+	lat.checksum = "               0" ;
+
+	uvel=f.createVariable('uvel','f4',('i'))
+	uvel.long_name = "zonal velocity" ;
+	uvel.units = "m/s" ;
+	uvel.checksum = "               0" ;
+
+	vvel=f.createVariable('vvel','f4',('i'))
+	vvel.long_name = "meridional velocity" ;
+	vvel.units = "m/s" ;
+	vvel.checksum = "               0" ;
+
+	mass=f.createVariable('mass','f4',('i'))
+	mass.long_name = "mass" ;
+	mass.units = "kg" ;
+	mass.checksum = "               0" ;
+
+	axn=f.createVariable('axn','f4',('i'))
+	axn.long_name = "explicit zonal acceleration" ;
+	axn.units = "m/s^2" ;
+	axn.checksum = "               0" ;
+
+	ayn=f.createVariable('ayn','f4',('i'))
+	ayn.long_name = "explicit meridional acceleration" ;
+	ayn.units = "m/s^2" ;
+	ayn.checksum = "               0" ;
+
+	bxn=f.createVariable('bxn','f4',('i'))
+	bxn.long_name = "inplicit zonal acceleration" ;
+	bxn.units = "m/s^2" ;
+	bxn.checksum = "               0" ;
+
+	byn=f.createVariable('byn','f4',('i'))
+	byn.long_name = "implicit meridional acceleration" ;
+	byn.units = "m/s^2" ;
+	byn.checksum = "               0" ;
+
+	ine=f.createVariable('ine','f4',('i'))
+	ine.long_name = "i index" ;
+	ine.units = "none" ;
+	ine.packing = 0 ;
+	ine.checksum = "               0" ;
+
+	jne=f.createVariable('jne','f4',('i'))
+	jne.long_name = "j index" ;
+	jne.units = "none" ;
+	jne.packing = 0 ;
+
+	thickness=f.createVariable('thickness','f4',('i'))
+	thickness.long_name = "thickness" ;
+	thickness.units = "m" ;
+	thickness.checksum = "               0" ;
+
+	width=f.createVariable('width','f4',('i'))
+	width.long_name = "width" ;
+	width.units = "m" ;
+	width.checksum = "               0" ;
+
+	length=f.createVariable('length','f4',('i'))
+	length.long_name = "length" ;
+	length.units = "m" ;
+	length.checksum = "               0" ;
+
+	start_lon=f.createVariable('start_lon','f4',('i'))
+	start_lon.long_name = "longitude of calving location" ;
+	start_lon.units = "degrees_E" ;
+	start_lon.checksum = "               0" ;
+
+	start_lat=f.createVariable('start_lat','f4',('i'))
+	start_lat.long_name = "latitude of calving location" ;
+	start_lat.units = "degrees_N" ;
+	start_lat.checksum = "               0" ;
+
+	start_year=f.createVariable('start_year','f4',('i'))
+	start_year.long_name = "calendar year of calving event" ;
+	start_year.units = "years" ;
+	start_year.packing = 0 ;
+	start_year.checksum = "               0" ;
+
+	iceberg_num=f.createVariable('iceberg_num','f4',('i'))
+	iceberg_num.long_name = "identification of the iceberg" ;
+	iceberg_num.units = "dimensionless" ;
+	iceberg_num.packing = 0 ;
+	iceberg_num.checksum = "               0" ;
+
+	start_day=f.createVariable('start_day','f4',('i'))
+	start_day.long_name = "year day of calving event" ;
+	start_day.units = "days" ;
+	start_day.checksum = "               0" ;
+
+	start_mass=f.createVariable('start_mass','f4',('i'))
+	start_mass.long_name = "initial mass of calving berg" ;
+	start_mass.units = "kg" ;
+	start_mass.checksum = "               0" ;
+
+	mass_scaling=f.createVariable('mass_scaling','f4',('i'))
+	mass_scaling.long_name = "scaling factor for mass of calving berg" ;
+	mass_scaling.units = "none" ;
+	mass_scaling.checksum = "               0" ;
+
+	mass_of_bits=f.createVariable('mass_of_bits','f4',('i'))
+	mass_of_bits.long_name = "mass of bergy bits" ;
+	mass_of_bits.units = "kg" ;
+	mass_of_bits.checksum = "               0" ;
+
+	heat_density=f.createVariable('heat_density','f4',('i'))
+	heat_density.long_name = "heat density" ;
+	heat_density.units = "J/kg" ;
+	heat_density.checksum = "               0" ;
+
+	f.sync()
+	f.close()
+
+def create_empty_bond_restart_file(Empty_bond_restart_filename):
+
+	f = Dataset(Empty_bond_restart_filename,'w', format='NETCDF3_CLASSIC')
+
+	i=f.createDimension('i', None)
+
+	first_berg_ine=f.createVariable('first_berg_ine','f4',('i'))
+	first_berg_ine.long_name = "iceberg ine of first berg in bond" ;
+	first_berg_ine.units = "dimensionless" ;
+	first_berg_ine.packing = 0 ;
+	first_berg_ine.checksum = "               0" ;
+
+	first_berg_jne=f.createVariable('first_berg_jne','f4',('i'))
+	first_berg_jne.long_name = "iceberg jne of first berg in bond" ;
+	first_berg_jne.units = "dimensionless" ;
+	first_berg_jne.packing = 0 ;
+	first_berg_jne.checksum = "               0" ;
+
+	first_berg_num=f.createVariable('first_berg_num','f4',('i'))
+	first_berg_num.long_name = "iceberg id first berg in bond" ;
+	first_berg_num.units = "dimensionless" ;
+	first_berg_num.packing = 0 ;
+	first_berg_num.checksum = "               0" ;
+
+	other_berg_ine=f.createVariable('other_berg_ine','f4',('i'))
+	other_berg_ine.long_name = "iceberg ine of second berg in bond" ;
+	other_berg_ine.units = "dimensionless" ;
+	other_berg_ine.packing = 0 ;
+	other_berg_ine.checksum = "               0" ;
+
+	other_berg_jne=f.createVariable('other_berg_jne','f4',('i'))
+	other_berg_jne.long_name = "iceberg jne of second berg in bond" ;
+	other_berg_jne.units = "dimensionless" ;
+	other_berg_jne.packing = 0 ;
+	other_berg_jne.checksum = "                0" ;
+
+	other_berg_num=f.createVariable('other_berg_num','f4',('i'))
+	other_berg_num.long_name = "iceberg id second berg in bond" ;
+	other_berg_num.units = "dimensionless" ;
+	other_berg_num.packing = 0 ;
+	other_berg_num.checksum = "               0" ;
+
+	f.sync()
+	f.close()
+
 	
 def Create_bond_restart_file(Number_of_bonds,first_berg_num,first_berg_ine,first_berg_jne,other_berg_ine,other_berg_jne,iceberg_num,other_berg_num,Ice_geometry_source):
 	#Creating the bond restart file
@@ -284,8 +482,12 @@ def Create_bond_restart_file(Number_of_bonds,first_berg_num,first_berg_ine,first
 	# To copy the global attributes of the netCDF file  
 
 	#Input and output files	
-	h=Dataset('input_files/bonds_iceberg.res.nc','r') # r is for read only
-	q=Dataset('output_files/' + Ice_geometry_source + '_bonds_iceberg.res.nc','w') # w if for creating a file
+	#Create Empty restart file. This is later read so that the attributes can be used.
+	Empty_bond_restart_filename='output_files/Empty_bonds_icebergs.res.nc'
+	create_empty_bond_restart_file(Empty_bond_restart_filename)
+
+	h=Dataset(Empty_bond_restart_filename,'r') # r is for read only
+	q=Dataset('output_files/' + Ice_geometry_source + '_bonds_iceberg.res.nc','w', format='NETCDF3_CLASSIC') # w if for creating a file
 
 	for attname in h.ncattrs():
 		    setattr(q,attname,getattr(h,attname))
@@ -1367,82 +1569,78 @@ def convert_input_to_catesian_coordinates(lon,lat,ice_mask,h_ice,R_earth,dx):
 def main(args):
 
 	#Flags
-	save_restart_files=True
-	save_new_h_ice_file=True
-	Convert_to_lat_lon=False
-	input_is_cartesian=True
+	save_restart_files=args.save_restart_files
+	save_new_h_ice_file=args.save_new_h_ice_file
+	Convert_to_lat_lon=args.Convert_to_lat_lon
+	input_is_cartesian=args.input_is_cartesian
 
 	#Iceberg setup flags
-	only_choose_one_berg=False  ; chosen_berg_num=1
-	scale_the_grid_to_lat_lon=False  #Remember to change this back when providing fields for Isomip
-	adjust_lat_ref=True
-	set_all_thicknesses_to_one=False   ; Th_prescribed=1.
-	Interpolate_from_four_corners=True
-	Switch_x_and_y_to_rotate_90=False
-	set_all_domain_to_ice=False
-	Use_default_radius= False 
+	only_choose_one_berg=args.only_choose_one_berg  ; chosen_berg_num=args.chosen_berg_num
+	scale_the_grid_to_lat_lon=args.scale_the_grid_to_lat_lon
+	adjust_lat_ref=args.adjust_lat_ref
+	set_all_thicknesses_to_one=args.set_all_thicknesses_to_one   ; Th_prescribed=args.Th_prescribed
+	Interpolate_from_four_corners=args.Interpolate_from_four_corners
+	Switch_x_and_y_to_rotate_90=args.Switch_x_and_y_to_rotate_90
+	set_all_domain_to_ice=args.set_all_domain_to_ice
+	Use_default_radius=args.Use_default_radius
 
 	#Static vs non-static flags
-	set_all_bergs_static_by_default=True  #Bergs are static unless instructed otherwise (e.g.: after applying calving)
-	set_some_bergs_static_by_default=False #Bergs in part of the domain are set to static by default (see subroutine for details)
-	Make_icebergs_non_static_later=False #Run subroutine which makes some icebergs non-static (eg: icebergs around calved tabular icebergs)
-	#Note that bonds are only creaeted for non_static, so by making bergs non_static later, it means they can move, but are not bonded.
+	set_all_bergs_static_by_default=args.set_all_bergs_static_by_default 
+	set_some_bergs_static_by_default=args.set_some_bergs_static_by_default 
+	Make_icebergs_non_static_later=args.Make_icebergs_non_static_later 
 
 	#Mass spreadng flags
-	Switch_regridding_element_type=False
-	Fill_in_the_boundaries=True
-	regrid_icebergs_onto_grid=True
+	element_type=args.element_type
+	Switch_regridding_element_type=args.Switch_regridding_element_type
+	Fill_in_the_boundaries=args.Fill_in_the_boundaries
+	regrid_icebergs_onto_grid=args.regrid_icebergs_onto_grid
 
 	#Plotting flags
-	Run_plotting_subroutine=True
-	plot_circles=False
-	plot_ice_mask=False
-	plot_ice_thickness=True
-	plot_icebergs_positions=True
-	plot_h_ice_new=True
+	Run_plotting_subroutine=args.Run_plotting_subroutine
+	plot_circles=args.plot_circles
+	plot_ice_mask=args.plot_ice_mask
+	plot_ice_thickness=args.plot_ice_thickness
+	plot_icebergs_positions=args.plot_icebergs_positions
+	plot_h_ice_new=args.plot_h_ice_new
+	plot_bonds=args.plot_bonds
 
 	#Bond related flags
-	Create_icebergs_bonds=True 
-	plot_bonds=True
-	break_some_bonds=True  #Breaks bonds
-	Remove_stationary_bergs=False 
-	Allow_bonds_for_static_iceberg=False
-	Allow_bonds_with_boundary_bergs=False
+	Create_icebergs_bonds=args.Create_icebergs_bonds
+	break_some_bonds=args.break_some_bonds
+	Remove_stationary_bergs=args.Remove_stationary_bergs
+	Allow_bonds_for_static_iceberg=args.Allow_bonds_for_static_iceberg
+	Allow_bonds_with_boundary_bergs=args.Allow_bonds_with_boundary_bergs
 
-	#element_type='square' 
-	element_type='hexagon'
 
 	#Which experiment
-	#Ice_geometry_source='ISOMIP'   ; Convert_to_lat_lon=False       ; input_is_cartesian=True ; 
-	Ice_geometry_source='Generic'   ; Convert_to_lat_lon=False       ; input_is_cartesian=True ; set_all_bergs_static_by_default=False ; Fill_in_the_boundaries=False ; Use_default_radius=True 
-	#Ice_geometry_source='Weddell'     ; Convert_to_lat_lon=False        ; input_is_cartesian=False
-
-	ISOMIP_reduced=True  #Reduced uses 2X2 grid, not reduced uses 1X1 grid
-
-	ISOMIP_ice_geometry_filename='input_files/Isomip_ice_geometry.nc'
-	#ISOMIP_reduced_ice_geometry_filename='input_files/isomip_ice_shelf1.nc'
-	#ISOMIP_reduced_ice_geometry_filename='input_files/Ocean1_3D_no_calving.nc'
-	ISOMIP_reduced_ice_geometry_filename='input_files/Ocean1_3D_no_calving_trimmed.nc'
-	Weddell_ice_geometry_filename='input_files/Bedmap2_gridded_subset_Weddell_Sea_Region.nc'
-	Generic_ice_geometry_filename='/lustre/f1/unswept/Alon.Stern/MOM6-examples_Alon/ice_ocean_SIS2/Drifting_tabular/python_scripts/output_files/Ice_shelf_file.nc'
+	Ice_geometry_source=args.Ice_geometry_source
+	ISOMIP_reduced=args.ISOMIP_reduced
+	ISOMIP_ice_geometry_filename=args.ISOMIP_ice_geometry_filename
+	ISOMIP_reduced_ice_geometry_filename=args.ISOMIP_reduced_ice_geometry_filename
+	Weddell_ice_geometry_filename=args.Weddell_ice_geometry_filename
+	Generic_ice_geometry_filename=args.Generic_ice_geometry_filename
 
 
 	#Parameters
-	#thickness=100.
-	#Radius=0.25*1000
-	#Radius=sqrt(3)/2.*1000
-	#Radius=1.*1000
-	Radius=0.85*1000.  #Hexagon only valid for S<half gridcell.  (about 0.85 using 2km)
-	rho_ice=918.
-	gravity=9.8
-	mass_scaling=1.
-	R_earth=6360.*1000.
-	buffer_number=0   #Number of buffer points on the sides of the domain
+	Radius=args.Radius
+	rho_ice=args.rho_ice
+	gravity=args.gravity
+	mass_scaling=args.mass_scaling
+	R_earth=args.R_earth
+	buffer_number=args.buffer_number
 
 	#Let interactive radius be different from radius for testing the model:
-	IA_scaling=1.#(1./2.)
-	Radius=Radius/IA_scaling
+	IA_scaling=args.IA_scaling
 
+	#Applying some special case flags
+	if Ice_geometry_source=='ISOMIP':
+		Convert_to_lat_lon=False       ; input_is_cartesian=True ; 
+	if Ice_geometry_source=='Generic':
+		Convert_to_lat_lon=False       ; input_is_cartesian=True ; set_all_bergs_static_by_default=False ; Fill_in_the_boundaries=False ; Use_default_radius=True 
+	if Ice_geometry_source=='Weddell':
+		Convert_to_lat_lon=False        ; input_is_cartesian=False
+
+	#Applying Warnings
 	if element_type=='square' and Interpolate_from_four_corners==True:
 		print 'Square packing with R dividing dx, works best with interpolation off.'
 
@@ -1452,6 +1650,7 @@ def main(args):
 
 	#####################################################################################
 	#####################################################################################
+	Radius=Radius/IA_scaling
 
 	if  Ice_geometry_source=='ISOMIP':
 		if ISOMIP_reduced==False:
@@ -1566,7 +1765,8 @@ def main(args):
 	#print 'field',(field[M[0]-2,:])
 	#print 'h_ice',h_ice_new[:,:]
 	#print 'h_ice-1',h_ice_new[:,:]-1.
-	plt.show()
+	if Run_plotting_subroutine:
+		plt.show()
 	print 'Script complete'
 
 
