@@ -228,6 +228,7 @@ def Create_iceberg_restart_file(Number_of_bergs, lon,lat,thickness,width,mass,ma
 	#Create Empty restart file. This is later read so that the attributes can be used.
 	Empty_restart_filename='output_files/Empty_icebergs.res.nc'
 	create_empty_iceberg_restart_file(Empty_restart_filename)
+	#Empty_restart_filename='input_files/icebergs.res.nc'
 
 	#Read empty restart file
 	f=Dataset(Empty_restart_filename,'r') # r is for read only
@@ -302,177 +303,6 @@ def Create_iceberg_restart_file(Number_of_bergs, lon,lat,thickness,width,mass,ma
 	f.close()
 	g.close()
 
-def create_empty_iceberg_restart_file(Empty_restart_filename):
-
-	f = Dataset(Empty_restart_filename,'w', format='NETCDF3_CLASSIC')
-
-	i=f.createDimension('i', None)
-
-	lon=f.createVariable('lon','f4',('i'))
-	lon.long_name = "longitude" ;
-	lon.units = "degrees_E" ;
-	lon.checksum = "               0" ;
-
-	lat=f.createVariable('lat','f4',('i'))
-	lat.long_name = "latitude" ;
-	lat.units = "degrees_N" ;
-	lat.checksum = "               0" ;
-
-	uvel=f.createVariable('uvel','f4',('i'))
-	uvel.long_name = "zonal velocity" ;
-	uvel.units = "m/s" ;
-	uvel.checksum = "               0" ;
-
-	vvel=f.createVariable('vvel','f4',('i'))
-	vvel.long_name = "meridional velocity" ;
-	vvel.units = "m/s" ;
-	vvel.checksum = "               0" ;
-
-	mass=f.createVariable('mass','f4',('i'))
-	mass.long_name = "mass" ;
-	mass.units = "kg" ;
-	mass.checksum = "               0" ;
-
-	axn=f.createVariable('axn','f4',('i'))
-	axn.long_name = "explicit zonal acceleration" ;
-	axn.units = "m/s^2" ;
-	axn.checksum = "               0" ;
-
-	ayn=f.createVariable('ayn','f4',('i'))
-	ayn.long_name = "explicit meridional acceleration" ;
-	ayn.units = "m/s^2" ;
-	ayn.checksum = "               0" ;
-
-	bxn=f.createVariable('bxn','f4',('i'))
-	bxn.long_name = "inplicit zonal acceleration" ;
-	bxn.units = "m/s^2" ;
-	bxn.checksum = "               0" ;
-
-	byn=f.createVariable('byn','f4',('i'))
-	byn.long_name = "implicit meridional acceleration" ;
-	byn.units = "m/s^2" ;
-	byn.checksum = "               0" ;
-
-	ine=f.createVariable('ine','f4',('i'))
-	ine.long_name = "i index" ;
-	ine.units = "none" ;
-	ine.packing = 0 ;
-	ine.checksum = "               0" ;
-
-	jne=f.createVariable('jne','f4',('i'))
-	jne.long_name = "j index" ;
-	jne.units = "none" ;
-	jne.packing = 0 ;
-
-	thickness=f.createVariable('thickness','f4',('i'))
-	thickness.long_name = "thickness" ;
-	thickness.units = "m" ;
-	thickness.checksum = "               0" ;
-
-	width=f.createVariable('width','f4',('i'))
-	width.long_name = "width" ;
-	width.units = "m" ;
-	width.checksum = "               0" ;
-
-	length=f.createVariable('length','f4',('i'))
-	length.long_name = "length" ;
-	length.units = "m" ;
-	length.checksum = "               0" ;
-
-	start_lon=f.createVariable('start_lon','f4',('i'))
-	start_lon.long_name = "longitude of calving location" ;
-	start_lon.units = "degrees_E" ;
-	start_lon.checksum = "               0" ;
-
-	start_lat=f.createVariable('start_lat','f4',('i'))
-	start_lat.long_name = "latitude of calving location" ;
-	start_lat.units = "degrees_N" ;
-	start_lat.checksum = "               0" ;
-
-	start_year=f.createVariable('start_year','f4',('i'))
-	start_year.long_name = "calendar year of calving event" ;
-	start_year.units = "years" ;
-	start_year.packing = 0 ;
-	start_year.checksum = "               0" ;
-
-	iceberg_num=f.createVariable('iceberg_num','f4',('i'))
-	iceberg_num.long_name = "identification of the iceberg" ;
-	iceberg_num.units = "dimensionless" ;
-	iceberg_num.packing = 0 ;
-	iceberg_num.checksum = "               0" ;
-
-	start_day=f.createVariable('start_day','f4',('i'))
-	start_day.long_name = "year day of calving event" ;
-	start_day.units = "days" ;
-	start_day.checksum = "               0" ;
-
-	start_mass=f.createVariable('start_mass','f4',('i'))
-	start_mass.long_name = "initial mass of calving berg" ;
-	start_mass.units = "kg" ;
-	start_mass.checksum = "               0" ;
-
-	mass_scaling=f.createVariable('mass_scaling','f4',('i'))
-	mass_scaling.long_name = "scaling factor for mass of calving berg" ;
-	mass_scaling.units = "none" ;
-	mass_scaling.checksum = "               0" ;
-
-	mass_of_bits=f.createVariable('mass_of_bits','f4',('i'))
-	mass_of_bits.long_name = "mass of bergy bits" ;
-	mass_of_bits.units = "kg" ;
-	mass_of_bits.checksum = "               0" ;
-
-	heat_density=f.createVariable('heat_density','f4',('i'))
-	heat_density.long_name = "heat density" ;
-	heat_density.units = "J/kg" ;
-	heat_density.checksum = "               0" ;
-
-	f.sync()
-	f.close()
-
-def create_empty_bond_restart_file(Empty_bond_restart_filename):
-
-	f = Dataset(Empty_bond_restart_filename,'w', format='NETCDF3_CLASSIC')
-
-	i=f.createDimension('i', None)
-
-	first_berg_ine=f.createVariable('first_berg_ine','f4',('i'))
-	first_berg_ine.long_name = "iceberg ine of first berg in bond" ;
-	first_berg_ine.units = "dimensionless" ;
-	first_berg_ine.packing = 0 ;
-	first_berg_ine.checksum = "               0" ;
-
-	first_berg_jne=f.createVariable('first_berg_jne','f4',('i'))
-	first_berg_jne.long_name = "iceberg jne of first berg in bond" ;
-	first_berg_jne.units = "dimensionless" ;
-	first_berg_jne.packing = 0 ;
-	first_berg_jne.checksum = "               0" ;
-
-	first_berg_num=f.createVariable('first_berg_num','f4',('i'))
-	first_berg_num.long_name = "iceberg id first berg in bond" ;
-	first_berg_num.units = "dimensionless" ;
-	first_berg_num.packing = 0 ;
-	first_berg_num.checksum = "               0" ;
-
-	other_berg_ine=f.createVariable('other_berg_ine','f4',('i'))
-	other_berg_ine.long_name = "iceberg ine of second berg in bond" ;
-	other_berg_ine.units = "dimensionless" ;
-	other_berg_ine.packing = 0 ;
-	other_berg_ine.checksum = "               0" ;
-
-	other_berg_jne=f.createVariable('other_berg_jne','f4',('i'))
-	other_berg_jne.long_name = "iceberg jne of second berg in bond" ;
-	other_berg_jne.units = "dimensionless" ;
-	other_berg_jne.packing = 0 ;
-	other_berg_jne.checksum = "                0" ;
-
-	other_berg_num=f.createVariable('other_berg_num','f4',('i'))
-	other_berg_num.long_name = "iceberg id second berg in bond" ;
-	other_berg_num.units = "dimensionless" ;
-	other_berg_num.packing = 0 ;
-	other_berg_num.checksum = "               0" ;
-
-	f.sync()
-	f.close()
 
 	
 def Create_bond_restart_file(Number_of_bonds,first_berg_num,first_berg_ine,first_berg_jne,other_berg_ine,other_berg_jne,iceberg_num,other_berg_num,Ice_geometry_source):
@@ -483,8 +313,9 @@ def Create_bond_restart_file(Number_of_bonds,first_berg_num,first_berg_ine,first
 
 	#Input and output files	
 	#Create Empty restart file. This is later read so that the attributes can be used.
-	Empty_bond_restart_filename='output_files/Empty_bonds_icebergs.res.nc'
-	create_empty_bond_restart_file(Empty_bond_restart_filename)
+	#Empty_bond_restart_filename='output_files/Empty_bonds_icebergs.res.nc'
+	#create_empty_bond_restart_file(Empty_bond_restart_filename)
+	Empty_bond_restart_filename='input_files/bonds_iceberg.res.nc'
 
 	h=Dataset(Empty_bond_restart_filename,'r') # r is for read only
 	q=Dataset('output_files/' + Ice_geometry_source + '_bonds_iceberg.res.nc','w', format='NETCDF3_CLASSIC') # w if for creating a file
@@ -544,6 +375,190 @@ def Create_bond_restart_file(Number_of_bonds,first_berg_num,first_berg_ine,first
 	q.close()
 
 
+def create_empty_iceberg_restart_file(Empty_restart_filename):
+
+	f = Dataset(Empty_restart_filename,'w', format='NETCDF3_CLASSIC')
+
+	i=f.createDimension('i', None)
+	lon=f.createVariable('i','i')
+
+	lon=f.createVariable('lon','d',('i'))
+	lon.long_name = "longitude" ;
+	lon.units = "degrees_E" ;
+	lon.checksum = "               0" ;
+
+	lat=f.createVariable('lat','d',('i'))
+	lat.long_name = "latitude" ;
+	lat.units = "degrees_N" ;
+	lat.checksum = "               0" ;
+
+	uvel=f.createVariable('uvel','d',('i'))
+	uvel.long_name = "zonal velocity" ;
+	uvel.units = "m/s" ;
+	uvel.checksum = "               0" ;
+
+	vvel=f.createVariable('vvel','d',('i'))
+	vvel.long_name = "meridional velocity" ;
+	vvel.units = "m/s" ;
+	vvel.checksum = "               0" ;
+
+	mass=f.createVariable('mass','d',('i'))
+	mass.long_name = "mass" ;
+	mass.units = "kg" ;
+	mass.checksum = "               0" ;
+
+	axn=f.createVariable('axn','d',('i'))
+	axn.long_name = "explicit zonal acceleration" ;
+	axn.units = "m/s^2" ;
+	axn.checksum = "               0" ;
+
+	ayn=f.createVariable('ayn','d',('i'))
+	ayn.long_name = "explicit meridional acceleration" ;
+	ayn.units = "m/s^2" ;
+	ayn.checksum = "               0" ;
+
+	bxn=f.createVariable('bxn','d',('i'))
+	bxn.long_name = "inplicit zonal acceleration" ;
+	bxn.units = "m/s^2" ;
+	bxn.checksum = "               0" ;
+
+	byn=f.createVariable('byn','d',('i'))
+	byn.long_name = "implicit meridional acceleration" ;
+	byn.units = "m/s^2" ;
+	byn.checksum = "               0" ;
+
+	ine=f.createVariable('ine','i',('i'))
+	ine.long_name = "i index" ;
+	ine.units = "none" ;
+	ine.packing = 0 ;
+	ine.checksum = "               0" ;
+
+	jne=f.createVariable('jne','i',('i'))
+	jne.long_name = "j index" ;
+	jne.units = "none" ;
+	jne.packing = 0 ;
+	jne.checksum = "               0" ;
+
+	thickness=f.createVariable('thickness','d',('i'))
+	thickness.long_name = "thickness" ;
+	thickness.units = "m" ;
+	thickness.checksum = "               0" ;
+
+	width=f.createVariable('width','d',('i'))
+	width.long_name = "width" ;
+	width.units = "m" ;
+	width.checksum = "               0" ;
+
+	length=f.createVariable('length','d',('i'))
+	length.long_name = "length" ;
+	length.units = "m" ;
+	length.checksum = "               0" ;
+
+	start_lon=f.createVariable('start_lon','d',('i'))
+	start_lon.long_name = "longitude of calving location" ;
+	start_lon.units = "degrees_E" ;
+	start_lon.checksum = "               0" ;
+
+	start_lat=f.createVariable('start_lat','d',('i'))
+	start_lat.long_name = "latitude of calving location" ;
+	start_lat.units = "degrees_N" ;
+	start_lat.checksum = "               0" ;
+
+	start_year=f.createVariable('start_year','i',('i'))
+	start_year.long_name = "calendar year of calving event" ;
+	start_year.units = "years" ;
+	start_year.packing = 0 ;
+	start_year.checksum = "               0" ;
+
+	iceberg_num=f.createVariable('iceberg_num','i',('i'))
+	iceberg_num.long_name = "identification of the iceberg" ;
+	iceberg_num.units = "dimensionless" ;
+	iceberg_num.packing = 0 ;
+	iceberg_num.checksum = "               0" ;
+
+	start_day=f.createVariable('start_day','d',('i'))
+	start_day.long_name = "year day of calving event" ;
+	start_day.units = "days" ;
+	start_day.checksum = "               0" ;
+
+	start_mass=f.createVariable('start_mass','d',('i'))
+	start_mass.long_name = "initial mass of calving berg" ;
+	start_mass.units = "kg" ;
+	start_mass.checksum = "               0" ;
+
+	mass_scaling=f.createVariable('mass_scaling','d',('i'))
+	mass_scaling.long_name = "scaling factor for mass of calving berg" ;
+	mass_scaling.units = "none" ;
+	mass_scaling.checksum = "               0" ;
+
+	mass_of_bits=f.createVariable('mass_of_bits','d',('i'))
+	mass_of_bits.long_name = "mass of bergy bits" ;
+	mass_of_bits.units = "kg" ;
+	mass_of_bits.checksum = "               0" ;
+
+	heat_density=f.createVariable('heat_density','d',('i'))
+	heat_density.long_name = "heat density" ;
+	heat_density.units = "J/kg" ;
+	heat_density.checksum = "               0" ;
+		
+	halo_berg=f.createVariable('halo_berg','d',('i'))
+	halo_berg.long_name = "halo_berg" ;
+	halo_berg.units = "dimensionless" ;
+	halo_berg.checksum = "               0" ;
+
+	static_berg=f.createVariable('static_berg','d',('i'))
+	static_berg.long_name = "static_berg" ;
+	static_berg.units = "dimensionless" ;
+	static_berg.checksum = "               0" ;
+
+	f.sync()
+	f.close()
+
+def create_empty_bond_restart_file(Empty_bond_restart_filename):
+
+	f = Dataset(Empty_bond_restart_filename,'w', format='NETCDF3_CLASSIC')
+
+	i=f.createDimension('i', None)
+	i=f.createVariable('i','i')
+
+	first_berg_ine=f.createVariable('first_berg_ine','i',('i'))
+	first_berg_ine.long_name = "iceberg ine of first berg in bond" ;
+	first_berg_ine.units = "dimensionless" ;
+	first_berg_ine.packing = 0 ;
+	first_berg_ine.checksum = "               0" ;
+
+	first_berg_jne=f.createVariable('first_berg_jne','i',('i'))
+	first_berg_jne.long_name = "iceberg jne of first berg in bond" ;
+	first_berg_jne.units = "dimensionless" ;
+	first_berg_jne.packing = 0 ;
+	first_berg_jne.checksum = "               0" ;
+
+	first_berg_num=f.createVariable('first_berg_num','i',('i'))
+	first_berg_num.long_name = "iceberg id first berg in bond" ;
+	first_berg_num.units = "dimensionless" ;
+	first_berg_num.packing = 0 ;
+	first_berg_num.checksum = "               0" ;
+
+	other_berg_ine=f.createVariable('other_berg_ine','i',('i'))
+	other_berg_ine.long_name = "iceberg ine of second berg in bond" ;
+	other_berg_ine.units = "dimensionless" ;
+	other_berg_ine.packing = 0 ;
+	other_berg_ine.checksum = "               0" ;
+
+	other_berg_jne=f.createVariable('other_berg_jne','i',('i'))
+	other_berg_jne.long_name = "iceberg jne of second berg in bond" ;
+	other_berg_jne.units = "dimensionless" ;
+	other_berg_jne.packing = 0 ;
+	other_berg_jne.checksum = "                0" ;
+
+	other_berg_num=f.createVariable('other_berg_num','i',('i'))
+	other_berg_num.long_name = "iceberg id second berg in bond" ;
+	other_berg_num.units = "dimensionless" ;
+	other_berg_num.packing = 0 ;
+	other_berg_num.checksum = "               0" ;
+
+	f.sync()
+	f.close()
 
 def Define_iceberg_thickness_and_mass(Number_of_bergs,dx_berg,dy_berg,rho_ice,Radius,h_ice,x,y,\
 		width,Interpolate_from_four_corners,element_area,element_type,static_berg):

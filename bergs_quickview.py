@@ -160,31 +160,32 @@ if len(sys.argv)==1:
 
 	#Choosing which files to use
 	#Weddel Sea Version
-	fileroot='/home/aas/Iceberg_Project/Weddell_Sea/'
-	dirname1='one_iceberg_testing_Verlet';
-	dirname2='one_iceberg_testing_RK';
+	#fileroot='/home/aas/Iceberg_Project/Weddell_Sea/'
+	#dirname1='one_iceberg_testing_Verlet';
+	#dirname2='one_iceberg_testing_RK';
 	
-	filename1=fileroot+dirname1+'/iceberg_trajectories.nc'
-	filename2=fileroot+dirname2+'/iceberg_trajectories.nc'
+	#filename1=fileroot+dirname1+'/iceberg_trajectories.nc'
+	#filename2=fileroot+dirname2+'/iceberg_trajectories.nc'
 
 	#Other files
 	#filename1='/home/aas/Iceberg_Project/Test_data1/Quick_Global_RK15/iceberg_trajectories.nc';
 	#filename1= '/home/aas/Iceberg_Project/Weddell_Sea/one_iceberg_testing/iceberg_trajectories.nc'
+	filename1= '../Rolling/iceberg_trajectories.nc'
 
 else:
 	Number_of_files=len(sys.argv)-1
 	
 #Imput parameters
-berg_num=0 #index of ic
+berg_num=296190 #index of ic
 
 #Flags and on/off switches
 plot_timeseries=0
 plot_trajectory=1
 plot_bergsize=1
 fix_horizontal_scale=0
-plot_all_bergs=1  #plots all the icebergs and not just the one given by n
+plot_all_bergs=0  #plots all the icebergs and not just the one given by n
 plot_initial_size=0
-plot_size_at_start_and_finish_only=1
+plot_size_at_start_and_finish_only=0
 short_form=1 #only looks up the lat / lon
 
 #Creating and filling up the bergs

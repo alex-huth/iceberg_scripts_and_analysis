@@ -14,7 +14,7 @@ import pdb
 
 
 
-def Create_iceberg_restart_file(f,g,Number_of_bergs, Number_of_bonds,lon,lat,thickness,width,mass,mass_scaling,iceberg_num):
+def Create_iceberg_restart_file(f,g,Number_of_bergs, Number_of_bonds,lon,lat,thickness,width,mass,mass_scaling,iceberg_num,make_icebergs_static):
 	
 	# To copy the global attributes of the netCDF file  
 
@@ -76,6 +76,9 @@ def Create_iceberg_restart_file(f,g,Number_of_bergs, Number_of_bonds,lon,lat,thi
 			for j in range(Number_of_bergs):
 				var[j]=lat[j]
 
+		if varname=='static_berg' and  make_icebergs_static==True:
+			for j in range(Number_of_bergs):
+				var[j]=1.
 
 	f.close()
 	g.close()
@@ -109,7 +112,7 @@ def Create_bond_restart_file(q,h, Number_of_bonds,first_berg_num,first_berg_ine,
 			setattr(var,attname,getattr(ncvar,attname))
 		#Finally copy the variable data to the new created variable
 		#var[:] = ncvar[0]
-		#var[:] = 0
+		var[:] = 0
 
 		if varname=='i':
 			var[:]=Number_of_bonds
@@ -329,11 +332,10 @@ def main():
 
 	#Flags
 	save_restart_files=True
-	convert_to_lat_lon=True  #True for Weddell Sea Case
-
+	make_icebergs_static=False
 
 	#Parameters
-	thickness=10.
+	thickness=1.
 	Radius=0.8*1000
 	rho_ice=850.
 	mass_scaling=1.
@@ -350,14 +352,18 @@ def main():
 	Radius=Radius/IA_scaling
 
 	#Here we create the lons and lats for a tabular iceberg
-	N= 30  # Number of rows in iceberg
-	M= 30   # Number of columns in iceberg
+	N=20  # Number of rows in iceberg
+	M=20   # Number of columns in iceberg
 	lon_init=-32.9  #longitude of bottom left corner of iceberg
 	lat_init=-70.  #latitude  of bottom left corner of iceberg
-	x_init=100  #For ISOMIP Case
-	y_init=3  #For ISOMIP Case
+	#x_init=100  #For ISOMIP Case
+	#y_init=3  #For ISOMIP Case
+	x_init=100*2000  #For ISOMIP Case
+	y_init=11*2000  #For ISOMIP Case
+	#x_init=354000.003288060  #
+	#y_init=33600.0000000000  #
 	#Experiment_name='Weddell'  ;  Convert_to_lat_lon=True     ; scale_the_grid_to_lat_lon=False
-	Experiment_name='ISOMIP'  ;  convert_to_lat_lon=False      ; scale_the_grid_to_lat_lon=True
+	Experiment_name='ISOMIP'  ;  convert_to_lat_lon=False      ; scale_the_grid_to_lat_lon=False
 
 
 	#element_type='square' #'hexagonal'
@@ -383,13 +389,15 @@ def main():
 
 	#####################################################################################
 	#Creating iceberg restart file
-	Create_iceberg_restart_file(f,g,Number_of_bergs, Number_of_bonds,lon,lat,thickness,width,mass,mass_scaling,iceberg_num)
+	Create_iceberg_restart_file(f,g,Number_of_bergs, Number_of_bonds,lon,lat,thickness,width,mass,mass_scaling,iceberg_num,make_icebergs_static)
 	
 	#Creating bond restart file
 	Create_bond_restart_file(q,h, Number_of_bonds,first_berg_num,first_berg_ine,first_berg_jne,other_berg_ine,other_berg_jne,iceberg_num,other_berg_num)
 
 	##################################################################################
 	
+	print 'Number of bergs created= ' , Number_of_bergs
+	print 'Number of Bonds created= ' , Number_of_bonds
 	plotting_iceberg_positions_and_bonds(lat,lon,first_berg_lat,first_berg_lon,other_berg_lat,other_berg_lon,Number_of_bergs,Number_of_bonds,R_earth,Radius,IA_scaling,convert_to_lat_lon)
 	# Plotting the positions and bonds of the newly formed formation
 
