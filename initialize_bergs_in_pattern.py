@@ -313,9 +313,9 @@ def Create_bond_restart_file(Number_of_bonds,first_berg_num,first_berg_ine,first
 
 	#Input and output files	
 	#Create Empty restart file. This is later read so that the attributes can be used.
-	#Empty_bond_restart_filename='output_files/Empty_bonds_icebergs.res.nc'
-	#create_empty_bond_restart_file(Empty_bond_restart_filename)
-	Empty_bond_restart_filename='input_files/bonds_iceberg.res.nc'
+	create_empty_bond_restart_file(Empty_bond_restart_filename)
+	Empty_bond_restart_filename='output_files/Empty_bonds_icebergs.res.nc'
+	#Empty_bond_restart_filename='input_files/bonds_iceberg.res.nc'
 
 	h=Dataset(Empty_bond_restart_filename,'r') # r is for read only
 	q=Dataset('output_files/' + Ice_geometry_source + '_bonds_iceberg.res.nc','w', format='NETCDF3_CLASSIC') # w if for creating a file
