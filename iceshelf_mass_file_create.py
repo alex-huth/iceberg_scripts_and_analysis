@@ -39,12 +39,12 @@ def main():
 	M= mass.shape
 	ny=M[0]
 	nx=M[1]
-	print nx,ny
-	print mass.shape
+	print(nx,ny)
+	print(mass.shape)
 
 	#subsampling data onto a grid half the size
 	MIB=np.zeros((ny/2,nx/2))
-	print MIB.shape
+	print(MIB.shape)
 	for i in range(0,nx,2):
 		for j in range(0,ny,2):
 			MIB[j/2,i/2]=mass[j,i]
@@ -74,7 +74,7 @@ def main():
 
 
 
-	print 'Script complete'
+	print('Script complete')
 
 
 

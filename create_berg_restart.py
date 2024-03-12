@@ -159,8 +159,8 @@ if True:
 		static_berg.units = "dimensionless" ;
 		static_berg.checksum = "               0" ;
 
-print 'Created restart file: ' ,new_filename
-print 'Script complete'
+print('Created restart file: ' ,new_filename)
+print('Script complete')
 
 f.sync()
 f.close()
@@ -169,4 +169,4 @@ f.close()
 
 
 
-print 'Script complete'
+print('Script complete')

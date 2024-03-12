@@ -3,7 +3,7 @@
 def bergs_yearday(bergs):
 	bergs=bergs_read(bergs,'year')
 	bergs=bergs_read(bergs,'day')
-	for b in xrange (0,len(bergs.berg)):
+	for b in range (0,len(bergs.berg)):
 		bergs.berg[b].yearday=bergs.berg[b].year+(bergs.berg[b].day/372)
 		#Note I have not included all the warnings about dimensions already existing.
         return bergs
@@ -13,13 +13,13 @@ def bergs_read(bergs,varname):
 	nc=bergs.nc
 	bergs_list=bergs.berg
 	var = nc.variables[varname][:]
-	for b in xrange (0,len(bergs.berg)):
+	for b in range (0,len(bergs.berg)):
 		k=[]
 		js=bergs.berg[b].js
 		je=bergs.berg[b].je
-		for l in xrange (0,len(js)):
-			temp=range(js[l],je[l]+1)
-			for i in xrange (0, len(temp)):
+		for l in range (0,len(js)):
+			temp=list(range(js[l],je[l]+1))
+			for i in range (0, len(temp)):
 				k.append(temp[i])
 			setattr(bergs.berg[b],varname,var[k])
         return bergs
@@ -101,10 +101,10 @@ def bergs_open(filename):
 
 	#Create a list of bergs, named by their hash values, h
 	berg=[]
-	for i in xrange (0,len(h)):
+	for i in range (0,len(h)):
 		berg.append(berg_type(h[i]))
 
-	for i in xrange(0, len(js)):
+	for i in range(0, len(js)):
 		j=js[i]+1
 		l=np.where(h==bergs_hash(year[j], day[j],lon[j],lat[j],mass[j]))[0]
 		berg[l].year0.append(year[j])
@@ -116,7 +116,7 @@ def bergs_open(filename):
 		berg[l].je.append(je[i])
 
 	#Sort each segment
-	for i in xrange (0,len(h)):
+	for i in range (0,len(h)):
 		yd=year[berg[i].js]+(day[berg[i].js]/373)
 		#Sort according to descending yd, and then pull out indicies for js, and je.
 		
@@ -182,13 +182,13 @@ plot_all_bergs=1  #plots all the icebergs and not just the one given by n
 
 
 #Creating and filling up the bergs
-for loop in xrange(0,Number_of_files):
+for loop in range(0,Number_of_files):
 	if len(sys.argv)==1:
 		if loop==0: filename=filename1
 		if loop==1: filename=filename2
 	else:
 		filename=sys.argv[loop+1]
-	print filename	
+	print(filename)	
 
 	berg=[]; del berg
 	bergs=bergs_open(filename)
@@ -201,7 +201,7 @@ for loop in xrange(0,Number_of_files):
 	N=len(bergs.berg)
 	if plot_all_bergs==0:
 		N=1
-	for n in xrange (0, N):
+	for n in range (0, N):
 		if plot_all_bergs==0:
 			n=berg_num
 
@@ -232,7 +232,7 @@ for loop in xrange(0,Number_of_files):
 			if plot_bergsize==1:
 				Radius_earth=6378.135*(10^(3));
 				circ_ind=np.linspace(0,2*pi,100);
-				for k in xrange (0 ,len(lat)):
+				for k in range (0 ,len(lat)):
     					L_eff=sqrt(((width[k]*length[k])/pi));
 					plt.plot(lon[k],lat[k],'bo',linewidth=5)
 				        d_lat=(L_eff/Radius_earth)*(180/pi);
@@ -265,4 +265,4 @@ if plot_timeseries==1:
 	plt.show()
 
 
-print 'Script complete'
+print('Script complete')

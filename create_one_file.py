@@ -35,7 +35,7 @@ def main():
 	M= Depth.shape
 	ny=M[0]
 	nx=M[1]
-	print nx,ny
+	print(nx,ny)
 	
 	#Creating the topog file
 	#g=Dataset(new_filename,'w') # w if for creating a file
@@ -85,7 +85,7 @@ def main():
 
 
 
-	print 'Script complete'
+	print('Script complete')
 
 
 

@@ -34,8 +34,8 @@ def main():
 	M= thick.shape
 	ny=M[0]
 	nx=M[1]
-	print nx,ny
-	print thick.shape
+	print(nx,ny)
+	print(thick.shape)
 
 	#Setting thickness to a prescribed value
 	prescribed_thickness=1.
@@ -62,7 +62,7 @@ def main():
 
 
 
-	print 'Script complete'
+	print('Script complete')
 
 
 

@@ -21,7 +21,7 @@ def transpose_matrix(data):
 	for i in range(M[0]):
 		for j in range(M[1]):
 			data_new[j,i]=data[i,j]
-	print 'After rotation' ,data.shape
+	print('After rotation' ,data.shape)
 	return data_new
 
 def load_data_from_file(filename,field,dim_num,layer_number,rotated=None):
@@ -33,7 +33,7 @@ def load_data_from_file(filename,field,dim_num,layer_number,rotated=None):
 		if dim_num==4:
 			data = file.variables[field][:]
 	
-	print 'Data size:' ,data.shape
+	print('Data size:' ,data.shape)
 	
 	if len(data.shape)==3:
 		#data=np.squeeze(np.mean(data,axis=0))  #Mean over first variable
@@ -49,7 +49,7 @@ def load_data_from_file(filename,field,dim_num,layer_number,rotated=None):
 	return data
 
 def plot_data_field(data,field,vmin=None,vmax=None): 
-	print 'Starting to plot...'	
+	print('Starting to plot...')	
 	if vmin==None:
 		vmin=np.min(data)
 	else:
@@ -60,8 +60,8 @@ def plot_data_field(data,field,vmin=None,vmax=None):
 	else:
 		vmax=float(vmax)
 	cmap='jet'
-	print vmin	
-	print vmax	
+	print(vmin)	
+	print(vmax)	
 
 	cNorm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
 	#cNorm = mpl.colors.Normalize(vmin=600, vmax=850)
@@ -71,7 +71,7 @@ def plot_data_field(data,field,vmin=None,vmax=None):
 	plt.title(field)
 
 def plot_operated_fields(data1,data2,field,operation,vmax_lim=None): 
-	print 'Starting to plot...'	
+	print('Starting to plot...')	
 
 	#Temp lines to subtract maximum
 	#temp_val=np.max(data1)
@@ -117,7 +117,7 @@ def plot_operated_fields(data1,data2,field,operation,vmax_lim=None):
 	plt.pcolormesh(data3,norm=cNorm,cmap=cmap)
 	plt.colorbar()
 	plt.title('Difference')
-	print 'Max/Min data3=', np.max(data3), np.min(data3)
+	print('Max/Min data3=', np.max(data3), np.min(data3))
 
 ####################################################################################################################################################
 ##########################################################  Main Program   #########################################################################
@@ -147,7 +147,7 @@ def main():
 	operation=args.operation
 	filename1=args.file1
 	rotated=args.rotated
-	print 'File 1 = ' , filename1
+	print('File 1 = ' , filename1)
 
 	#filename3='../../ocean_only/Alistair_ISOMIP/rho/ISOMIP_IC.nc'
 	#filename1='/lustre/f1/unswept/Alon.Stern/MOM6-examples_Alon/ocean_only/Alistair_ISOMIP/rho/ISOMIP.nc'
@@ -164,12 +164,12 @@ def main():
 
 	if args.file2!=None:
 		filename2=args.file2
-		print 'File 2 = ' ,filename2
+		print('File 2 = ' ,filename2)
 		#Loading data from file1
 		data2=load_data_from_file(filename2,field2,dim_num,layer_number,rotated)
 
 		if operation=='subtract':
-			print 'Subtracting fields'
+			print('Subtracting fields')
 			#data=data-data2
 			#operation='subtract'
 
@@ -182,7 +182,7 @@ def main():
 	#Plotting flags
 	#fig.set_size_inches(9,4.5)
 	plt.show()
-	print 'Script complete'
+	print('Script complete')
 
 
 

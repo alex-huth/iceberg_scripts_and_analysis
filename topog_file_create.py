@@ -46,7 +46,7 @@ def main():
 	M= Depth.shape
 	ny=M[0]
 	nx=M[1]
-	print nx,ny
+	print(nx,ny)
 
 	if use_flat_bottom==True:
 		Depth[:,:]=(Depth[:,:]*0.0)+constant_depth
@@ -71,7 +71,7 @@ def main():
 	depth_h=g.createVariable('depth','f4',('yt','xt'))
 	g.variables['depth'][:]=Depth
 
-	print 'Writing file: ' , new_filename
+	print('Writing file: ' , new_filename)
 	
 	g.sync()
 	g.close()
@@ -80,7 +80,7 @@ def main():
 
 
 
-	print 'Script complete'
+	print('Script complete')
 
 
 

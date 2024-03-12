@@ -6,7 +6,7 @@ import numpy as np  # http://code.google.com/p/netcdf4-python/
 import matplotlib
 import math
 import os
-matplotlib.use("GTKAgg")
+#matplotlib.use("GTKAgg")
 from pylab import *
 from scipy import interpolate
 #import matplotlib.pyplot as plt
@@ -36,58 +36,58 @@ def parseCommandLine():
 
 	#Flags
 	parser.add_argument('-save_restart_files', type='bool', default=True,
-		          help=''' Writes an iceberg restart file,  icebergs.res ''')
+			  help=''' Writes an iceberg restart file,  icebergs.res ''')
 
 	parser.add_argument('-save_new_h_ice_file', type='bool', default=True,
-		          help=''' Writes a new gridded ice thickness file, which is what the ice thickness after the berg mass is interpolated back onto the grid''')
+			  help=''' Writes a new gridded ice thickness file, which is what the ice thickness after the berg mass is interpolated back onto the grid''')
 
 	parser.add_argument('-Convert_to_lat_lon', type='bool', default=False,
-		          help=''' Converts the iceberg positions to lat / lon coordinates  ''')
+			  help=''' Converts the iceberg positions to lat / lon coordinates  ''')
 
 	parser.add_argument('-input_is_cartesian', type='bool', default=True,
-		          help=''' The positions in the ice thickness input file is given in cartesian coordiantes''')
+			  help=''' The positions in the ice thickness input file is given in cartesian coordiantes''')
 
 	#Iceberg setup flags
 	parser.add_argument('-only_choose_one_berg', type='bool', default=False,
-		          help=''' When true, only one iceberg (with number chosen_berg_num) is written to icebergs.res. This is for debugging  ''')
+			  help=''' When true, only one iceberg (with number chosen_berg_num) is written to icebergs.res. This is for debugging	''')
 
 	parser.add_argument('-chosen_berg_num', type=int, default=1,
-		          help='''When only_choose_one_berg=True, then only the iceberg with this number is written to the icebergs.res file  ''')
+			  help='''When only_choose_one_berg=True, then only the iceberg with this number is written to the icebergs.res file  ''')
 
 	parser.add_argument('-scale_the_grid_to_lat_lon', type='bool', default=False,
-		          help=''' This option scales dimensions by a fixed amount. Option should be removed   ''')
+			  help=''' This option scales dimensions by a fixed amount. Option should be removed   ''')
 
 	parser.add_argument('-adjust_lat_ref', type='bool', default=True,
-		          help=''' This option is only used when Convert_to_lat_lon is true. If true, then the reference latitudes depends on iceberg position.\
+			  help=''' This option is only used when Convert_to_lat_lon is true. If true, then the reference latitudes depends on iceberg position.\
 					  This still needs to be tested using lat lon test cases.''')
 
 	parser.add_argument('-set_all_thicknesses_to_one', type='bool', default=False,
-		          help=''' Sets all non-zero ice thickness to Th_prescibed (default 1), useful for debugging.  ''')
+			  help=''' Sets all non-zero ice thickness to Th_prescibed (default 1), useful for debugging.  ''')
 
 	parser.add_argument('-Th_prescribed', type=float, default=1.0,
-		          help='''Prescibed ice thickness used when the flag set_all_thicknesses_to_one=True   ''')
+			  help='''Prescibed ice thickness used when the flag set_all_thicknesses_to_one=True   ''')
 
 	parser.add_argument('-Interpolate_from_four_corners', type='bool', default=True,
-		          help=''' The thickness of an iceberg is calcaulated from the 4 corners of the gridded thickness. When flag is false, the near thickness is used  ''')
+			  help=''' The thickness of an iceberg is calcaulated from the 4 corners of the gridded thickness. When flag is false, the near thickness is used  ''')
 
 	parser.add_argument('-Switch_x_and_y_to_rotate_90', type='bool', default=False,
-		          help=''' Rotates the whole domain by 90 degrees by switching lat and lon of icebergs.  ''')
+			  help=''' Rotates the whole domain by 90 degrees by switching lat and lon of icebergs.	 ''')
 
 	parser.add_argument('-set_all_domain_to_ice', type='bool', default=False,
-		          help=''' Sets the ice thickness = Th_prescibed (default 1) throughout the entire domain. Applied only when flag set_all_thicknesses_to_one=True   ''')
+			  help=''' Sets the ice thickness = Th_prescibed (default 1) throughout the entire domain. Applied only when flag set_all_thicknesses_to_one=True   ''')
 
 	parser.add_argument('-Use_default_radius', type='bool', default=False,
-		          help=''' Calculates an appropriate ice element radius based on the ocean grid spacing.   ''')
+			  help=''' Calculates an appropriate ice element radius based on the ocean grid spacing.   ''')
 
 	parser.add_argument('-Remove_stationary_bergs', type='bool', default=False,
-		          help=''' All stationary icebergs are removed.  ''')
+			  help=''' All stationary icebergs are removed.	 ''')
 
 	#Static vs non-static flags (These are needed for calving away from Static shelf)
 	parser.add_argument('-set_all_bergs_static_by_default', type='bool', default=True,
 			help='''Bergs are static unless instructed otherwise (e.g.: after applying calving)   ''')
 
 	parser.add_argument('-set_some_bergs_static_by_default', type='bool', default=False,
-		          help=''' Bergs in part of the domain are set to static by default (see subroutine for details)  ''')
+			  help=''' Bergs in part of the domain are set to static by default (see subroutine for details)  ''')
 
 	parser.add_argument('-Make_icebergs_non_static_later', type='bool', default=False,
 			help=''' Run subroutine which makes some icebergs non-static later (eg: icebergs around calved tabular icebergs).  Note that bonds are \
@@ -95,15 +95,15 @@ def parseCommandLine():
 
 	#Mass spreadng flags
 	parser.add_argument('-Switch_regridding_element_type', type='bool', default=False,
-		          help=''' When true, element shape is switched from hexagon to square (and visa versa) before regridding. Used in debugging to see if having \
+			  help=''' When true, element shape is switched from hexagon to square (and visa versa) before regridding. Used in debugging to see if having \
 			  the wrond elemnt type makes a bid difference. Maybe this option should be removed(?)''')
 
 	parser.add_argument('-Fill_in_the_boundaries', type='bool', default=True,
-		          help=''' Adds extra (static)  ice elements at the edges of the domain when the ice shelf extends right up until the boundaries of the domain.\
+			  help=''' Adds extra (static)	ice elements at the edges of the domain when the ice shelf extends right up until the boundaries of the domain.\
 					  Only used with hexagonal ice elements (for now).''')
 
 	parser.add_argument('-regrid_icebergs_onto_grid', type='bool', default=True,
-		          help=''' After icebergs have been defined, the iceberg mass is interpolated back onto the ocean grid  ''')
+			  help=''' After icebergs have been defined, the iceberg mass is interpolated back onto the ocean grid	''')
 
 	parser.add_argument('-element_type', type=str, default='hexagon',
 			help='''Shape of element used in mass spreading. Options are: 'hexagon' or 'square'   ''')
@@ -111,40 +111,40 @@ def parseCommandLine():
 
 	#Plotting flags - Only affect how the ice elements are plotted and does not affect files created by this script
 	parser.add_argument('-Run_plotting_subroutine', type='bool', default=True,
-		          help=''' Subrouting is run plots icebergs and ice thickness. All other plotting flags require this to be true.  ''')
+			  help=''' Subrouting is run plots icebergs and ice thickness. All other plotting flags require this to be true.  ''')
 
 	parser.add_argument('-plot_circles', type='bool', default=False,
-		          help=''' Circles are plotted to scale which show how large each ice element is. (Useful when converting to lat lon)  ''')
+			  help=''' Circles are plotted to scale which show how large each ice element is. (Useful when converting to lat lon)  ''')
 
 	parser.add_argument('-plot_ice_mask', type='bool', default=False,
-		          help=''' The ice mask (showing where ice shelf is present) is plotted under iceberg positions. Option may be removed.  ''')
+			  help=''' The ice mask (showing where ice shelf is present) is plotted under iceberg positions. Option may be removed.	 ''')
 
 	parser.add_argument('-plot_ice_thickness', type='bool', default=True,
-		          help=''' The ice thickness is plotted under iceberg positions   ''')
+			  help=''' The ice thickness is plotted under iceberg positions	  ''')
 
 	parser.add_argument('-plot_icebergs_positions', type='bool', default=True,
-		          help='''  Positions of ice elements are plotted  ''')
+			  help='''  Positions of ice elements are plotted  ''')
 
 	parser.add_argument('-plot_h_ice_new', type='bool', default=True,
-		          help='''  The newly interpolated ice thickness is plotted under iceberg positions ''')
-	
+			  help='''  The newly interpolated ice thickness is plotted under iceberg positions ''')
+
 	parser.add_argument('-plot_bonds', type='bool', default=False,
-		          help=''' Bonds are plotted between the ice elements   ''')
+			  help=''' Bonds are plotted between the ice elements	''')
 
 	#Bond related flags
 	parser.add_argument('-Create_icebergs_bonds', type='bool', default=True,
-		          help=''' Bonds are created between icebergs  ''')
+			  help=''' Bonds are created between icebergs  ''')
 
 	parser.add_argument('-break_some_bonds', type='bool', default=True,
-		          help=''' After the bonds have been set up, some are broken. This simulates a iceberg / ice shelf calving.\
+			  help=''' After the bonds have been set up, some are broken. This simulates a iceberg / ice shelf calving.\
 					  Note that this flag is also used to make a calving event even if bonds are not used since \
 					  the "calving" process also sets some icebergs to static and others to non-static''')
 
 	parser.add_argument('-Allow_bonds_for_static_iceberg', type='bool', default=False,
-		          help=''' If True then bonds are allowed for ice elements which are static.   ''')
+			  help=''' If True then bonds are allowed for ice elements which are static.   ''')
 
 	parser.add_argument('-Allow_bonds_with_boundary_bergs', type='bool', default=False,
-		          help=''' When true, bonds are allowed to form with elements close to the boundary. \
+			  help=''' When true, bonds are allowed to form with elements close to the boundary. \
 					  When false, bonds are allowed for bergs closer with i,j < N_bergs_before_bd.\
 					  This option is a little confusing and might need to be removed (>)''')
 
@@ -167,7 +167,7 @@ def parseCommandLine():
 
 	parser.add_argument('-Generic_ice_geometry_filename', type=str, \
 			default='/lustre/f1/unswept/Alon.Stern/MOM6-examples_Alon/ice_ocean_SIS2/Drifting_tabular/python_scripts/output_files/Ice_shelf_file.nc',
-			help=''' Ice thickness used in a generic setup.   ''')
+			help=''' Ice thickness used in a generic setup.	  ''')
 
 
 	parser.add_argument('-ISOMIP_reduced', type='bool', default=True,
@@ -190,10 +190,10 @@ def parseCommandLine():
 			help=''' Number of icebergs represented by one ice element  ''')
 
 	parser.add_argument('-R_earth', type=float, default=6360000.,
-			help=''' Radius of the earch (m) - used in Lat/Lon conversions.   ''')
+			help=''' Radius of the earch (m) - used in Lat/Lon conversions.	  ''')
 
 	parser.add_argument('-buffer_number', type=int, default=0,
-			help=''' Amount of points from the boundaries where ice thickness is set to zero for debugging. This should be removed.  ''')
+			help=''' Amount of points from the boundaries where ice thickness is set to zero for debugging. This should be removed.	 ''')
 
 	parser.add_argument('-IA_scaling', type=float, default=1.,
 			help='''  A scaling parameter which allows the interactive radius be different from radius for testing the bonds.\
@@ -208,23 +208,23 @@ def str2bool(string):
 	elif string.lower() in ("no", "false", "f", "0"):
 		Value=False
 	else:
-		print '**********************************************************************'
-		print 'The input variable ' ,str(string) ,  ' is not suitable for boolean conversion, using default'
-		print '**********************************************************************'
+		print('**********************************************************************')
+		print('The input variable ' ,str(string) ,  ' is not suitable for boolean conversion, using default')
+		print('**********************************************************************')
 
 		Value=None
 		return
-	
+
 	return Value
 
-	
+
 
 def Create_iceberg_restart_file(Number_of_bergs, lon,lat,thickness,width,mass,mass_scaling,iceberg_num,Ice_geometry_source,static_berg):
-	
-	print 'Writing iceberg restart files, with ' , Number_of_bergs  , 'icebergs..'
-	# To copy the global attributes of the netCDF file  
 
-	#Input and output files	
+	print('Writing iceberg restart files, with ' , Number_of_bergs	, 'icebergs..')
+	# To copy the global attributes of the netCDF file
+
+	#Input and output files
 	#Create Empty restart file. This is later read so that the attributes can be used.
 	Empty_restart_filename='output_files/Empty_icebergs.res.nc'
 	create_empty_iceberg_restart_file(Empty_restart_filename)
@@ -240,7 +240,7 @@ def Create_iceberg_restart_file(Number_of_bergs, lon,lat,thickness,width,mass,ma
 
 
 	# To copy the dimension of the netCDF file
-	for dimname,dim in f.dimensions.iteritems():
+	for dimname,dim in f.dimensions.items():
 		# if you want to make changes in the dimensions of the new file
 		# you should add your own conditions here before the creation of the dimension.
 		#g.createDimension(dimname,len(dim))
@@ -248,27 +248,27 @@ def Create_iceberg_restart_file(Number_of_bergs, lon,lat,thickness,width,mass,ma
 
 	# To copy the variables of the netCDF file
 
-	for varname,ncvar in f.variables.iteritems():
+	for varname,ncvar in f.variables.items():
 		# if you want to make changes in the variables of the new file
 		# you should add your own conditions here before the creation of the variable.
 		var = g.createVariable(varname,ncvar.dtype,ncvar.dimensions)
 		#Proceed to copy the variable attributes
-		for attname in ncvar.ncattrs():  
+		for attname in ncvar.ncattrs():
 			setattr(var,attname,getattr(ncvar,attname))
 		#Finally copy the variable data to the new created variable
 		#var[:] = ncvar[0]  #I commented out this line because it was causing errors. I'm not sure if it is needed.
-		
+
 		if varname=='i':
 			var[:]=Number_of_bergs
-		
+
 		if varname=='iceberg_num':
 			for j in range(Number_of_bergs):
 				#var[j]=j+1
 				var[j]=iceberg_num[j]
 
 		if varname=='uvel' or varname=='vvel' or varname=='uvel_old' or varname=='vvel_old' or varname=='axn' or varname=='ayn'\
-		or varname=='bxn' or varname=='byn' or  varname=='halo_berg' or varname=='heat_density' or varname=='lon_old' or varname=='lat_old' \
-		or varname=='mass_of_bits' or varname=='start_mass' or  varname=='start_day' or varname=='start_year' or varname=='start_lon' \
+		or varname=='bxn' or varname=='byn' or	varname=='halo_berg' or varname=='heat_density' or varname=='lon_old' or varname=='lat_old' \
+		or varname=='mass_of_bits' or varname=='start_mass' or	varname=='start_day' or varname=='start_year' or varname=='start_lon' \
 		or varname=='start_lat' or varname=='start_mass' or  varname=='start_day' or varname=='start_year' or varname=='start_lon' or varname=='lat_old':\
 			var[:]=0
 
@@ -278,7 +278,7 @@ def Create_iceberg_restart_file(Number_of_bergs, lon,lat,thickness,width,mass,ma
 		if varname=='thickness':
 			for j in range(Number_of_bergs):
 				var[j]=thickness[j]
-		
+
 		if varname=='mass':
 			for j in range(Number_of_bergs):
 				var[j]=mass[j]
@@ -304,14 +304,14 @@ def Create_iceberg_restart_file(Number_of_bergs, lon,lat,thickness,width,mass,ma
 	g.close()
 
 
-	
+
 def Create_bond_restart_file(Number_of_bonds,first_berg_num,first_berg_ine,first_berg_jne,other_berg_ine,other_berg_jne,iceberg_num,other_berg_num,Ice_geometry_source):
 	#Creating the bond restart file
 
-	print 'Writing bond restart files with  ', Number_of_bonds, ' Bonds'
-	# To copy the global attributes of the netCDF file  
+	print('Writing bond restart files with	', Number_of_bonds, ' Bonds')
+	# To copy the global attributes of the netCDF file
 
-	#Input and output files	
+	#Input and output files
 	#Create Empty restart file. This is later read so that the attributes can be used.
 	Empty_bond_restart_filename='output_files/Empty_bonds_icebergs.res.nc'
 	create_empty_bond_restart_file(Empty_bond_restart_filename)
@@ -325,7 +325,7 @@ def Create_bond_restart_file(Number_of_bonds,first_berg_num,first_berg_ine,first
 
 
 	# To copy the dimension of the netCDF file
-	for dimname,dim in h.dimensions.iteritems():
+	for dimname,dim in h.dimensions.items():
 		# if you want to make changes in the dimensions of the new file
 		# you should add your own conditions here before the creation of the dimension.
 		#g.createDimension(dimname,len(dim))
@@ -333,12 +333,12 @@ def Create_bond_restart_file(Number_of_bonds,first_berg_num,first_berg_ine,first
 
 	# To copy the variables of the netCDF file
 
-	for varname,ncvar in h.variables.iteritems():
+	for varname,ncvar in h.variables.items():
 		# if you want to make changes in the variables of the new file
 		# you should add your own conditions here before the creation of the variable.
 		var = q.createVariable(varname,ncvar.dtype,ncvar.dimensions)
 		#Proceed to copy the variable attributes
-		for attname in ncvar.ncattrs():  
+		for attname in ncvar.ncattrs():
 			setattr(var,attname,getattr(ncvar,attname))
 		#Finally copy the variable data to the new created variable
 		#var[:] = ncvar[0]
@@ -385,131 +385,131 @@ def create_empty_iceberg_restart_file(Empty_restart_filename):
 	lon=f.createVariable('lon','d',('i'))
 	lon.long_name = "longitude" ;
 	lon.units = "degrees_E" ;
-	lon.checksum = "               0" ;
+	lon.checksum = "	       0" ;
 
 	lat=f.createVariable('lat','d',('i'))
 	lat.long_name = "latitude" ;
 	lat.units = "degrees_N" ;
-	lat.checksum = "               0" ;
+	lat.checksum = "	       0" ;
 
 	uvel=f.createVariable('uvel','d',('i'))
 	uvel.long_name = "zonal velocity" ;
 	uvel.units = "m/s" ;
-	uvel.checksum = "               0" ;
+	uvel.checksum = "		0" ;
 
 	vvel=f.createVariable('vvel','d',('i'))
 	vvel.long_name = "meridional velocity" ;
 	vvel.units = "m/s" ;
-	vvel.checksum = "               0" ;
+	vvel.checksum = "		0" ;
 
 	mass=f.createVariable('mass','d',('i'))
 	mass.long_name = "mass" ;
 	mass.units = "kg" ;
-	mass.checksum = "               0" ;
+	mass.checksum = "		0" ;
 
 	axn=f.createVariable('axn','d',('i'))
 	axn.long_name = "explicit zonal acceleration" ;
 	axn.units = "m/s^2" ;
-	axn.checksum = "               0" ;
+	axn.checksum = "	       0" ;
 
 	ayn=f.createVariable('ayn','d',('i'))
 	ayn.long_name = "explicit meridional acceleration" ;
 	ayn.units = "m/s^2" ;
-	ayn.checksum = "               0" ;
+	ayn.checksum = "	       0" ;
 
 	bxn=f.createVariable('bxn','d',('i'))
 	bxn.long_name = "inplicit zonal acceleration" ;
 	bxn.units = "m/s^2" ;
-	bxn.checksum = "               0" ;
+	bxn.checksum = "	       0" ;
 
 	byn=f.createVariable('byn','d',('i'))
 	byn.long_name = "implicit meridional acceleration" ;
 	byn.units = "m/s^2" ;
-	byn.checksum = "               0" ;
+	byn.checksum = "	       0" ;
 
 	ine=f.createVariable('ine','i',('i'))
 	ine.long_name = "i index" ;
 	ine.units = "none" ;
 	ine.packing = 0 ;
-	ine.checksum = "               0" ;
+	ine.checksum = "	       0" ;
 
 	jne=f.createVariable('jne','i',('i'))
 	jne.long_name = "j index" ;
 	jne.units = "none" ;
 	jne.packing = 0 ;
-	jne.checksum = "               0" ;
+	jne.checksum = "	       0" ;
 
 	thickness=f.createVariable('thickness','d',('i'))
 	thickness.long_name = "thickness" ;
 	thickness.units = "m" ;
-	thickness.checksum = "               0" ;
+	thickness.checksum = "		     0" ;
 
 	width=f.createVariable('width','d',('i'))
 	width.long_name = "width" ;
 	width.units = "m" ;
-	width.checksum = "               0" ;
+	width.checksum = "		 0" ;
 
 	length=f.createVariable('length','d',('i'))
 	length.long_name = "length" ;
 	length.units = "m" ;
-	length.checksum = "               0" ;
+	length.checksum = "		  0" ;
 
 	start_lon=f.createVariable('start_lon','d',('i'))
 	start_lon.long_name = "longitude of calving location" ;
 	start_lon.units = "degrees_E" ;
-	start_lon.checksum = "               0" ;
+	start_lon.checksum = "		     0" ;
 
 	start_lat=f.createVariable('start_lat','d',('i'))
 	start_lat.long_name = "latitude of calving location" ;
 	start_lat.units = "degrees_N" ;
-	start_lat.checksum = "               0" ;
+	start_lat.checksum = "		     0" ;
 
 	start_year=f.createVariable('start_year','i',('i'))
 	start_year.long_name = "calendar year of calving event" ;
 	start_year.units = "years" ;
 	start_year.packing = 0 ;
-	start_year.checksum = "               0" ;
+	start_year.checksum = "		      0" ;
 
 	iceberg_num=f.createVariable('iceberg_num','i',('i'))
 	iceberg_num.long_name = "identification of the iceberg" ;
 	iceberg_num.units = "dimensionless" ;
 	iceberg_num.packing = 0 ;
-	iceberg_num.checksum = "               0" ;
+	iceberg_num.checksum = "	       0" ;
 
 	start_day=f.createVariable('start_day','d',('i'))
 	start_day.long_name = "year day of calving event" ;
 	start_day.units = "days" ;
-	start_day.checksum = "               0" ;
+	start_day.checksum = "		     0" ;
 
 	start_mass=f.createVariable('start_mass','d',('i'))
 	start_mass.long_name = "initial mass of calving berg" ;
 	start_mass.units = "kg" ;
-	start_mass.checksum = "               0" ;
+	start_mass.checksum = "		      0" ;
 
 	mass_scaling=f.createVariable('mass_scaling','d',('i'))
 	mass_scaling.long_name = "scaling factor for mass of calving berg" ;
 	mass_scaling.units = "none" ;
-	mass_scaling.checksum = "               0" ;
+	mass_scaling.checksum = "		0" ;
 
 	mass_of_bits=f.createVariable('mass_of_bits','d',('i'))
 	mass_of_bits.long_name = "mass of bergy bits" ;
 	mass_of_bits.units = "kg" ;
-	mass_of_bits.checksum = "               0" ;
+	mass_of_bits.checksum = "		0" ;
 
 	heat_density=f.createVariable('heat_density','d',('i'))
 	heat_density.long_name = "heat density" ;
 	heat_density.units = "J/kg" ;
-	heat_density.checksum = "               0" ;
-		
+	heat_density.checksum = "		0" ;
+
 	halo_berg=f.createVariable('halo_berg','d',('i'))
 	halo_berg.long_name = "halo_berg" ;
 	halo_berg.units = "dimensionless" ;
-	halo_berg.checksum = "               0" ;
+	halo_berg.checksum = "		     0" ;
 
 	static_berg=f.createVariable('static_berg','d',('i'))
 	static_berg.long_name = "static_berg" ;
 	static_berg.units = "dimensionless" ;
-	static_berg.checksum = "               0" ;
+	static_berg.checksum = "	       0" ;
 
 	f.sync()
 	f.close()
@@ -525,37 +525,37 @@ def create_empty_bond_restart_file(Empty_bond_restart_filename):
 	first_berg_ine.long_name = "iceberg ine of first berg in bond" ;
 	first_berg_ine.units = "dimensionless" ;
 	first_berg_ine.packing = 0 ;
-	first_berg_ine.checksum = "               0" ;
+	first_berg_ine.checksum = "		  0" ;
 
 	first_berg_jne=f.createVariable('first_berg_jne','i',('i'))
 	first_berg_jne.long_name = "iceberg jne of first berg in bond" ;
 	first_berg_jne.units = "dimensionless" ;
 	first_berg_jne.packing = 0 ;
-	first_berg_jne.checksum = "               0" ;
+	first_berg_jne.checksum = "		  0" ;
 
 	first_berg_num=f.createVariable('first_berg_num','i',('i'))
 	first_berg_num.long_name = "iceberg id first berg in bond" ;
 	first_berg_num.units = "dimensionless" ;
 	first_berg_num.packing = 0 ;
-	first_berg_num.checksum = "               0" ;
+	first_berg_num.checksum = "		  0" ;
 
 	other_berg_ine=f.createVariable('other_berg_ine','i',('i'))
 	other_berg_ine.long_name = "iceberg ine of second berg in bond" ;
 	other_berg_ine.units = "dimensionless" ;
 	other_berg_ine.packing = 0 ;
-	other_berg_ine.checksum = "               0" ;
+	other_berg_ine.checksum = "		  0" ;
 
 	other_berg_jne=f.createVariable('other_berg_jne','i',('i'))
 	other_berg_jne.long_name = "iceberg jne of second berg in bond" ;
 	other_berg_jne.units = "dimensionless" ;
 	other_berg_jne.packing = 0 ;
-	other_berg_jne.checksum = "                0" ;
+	other_berg_jne.checksum = "		   0" ;
 
 	other_berg_num=f.createVariable('other_berg_num','i',('i'))
 	other_berg_num.long_name = "iceberg id second berg in bond" ;
 	other_berg_num.units = "dimensionless" ;
 	other_berg_num.packing = 0 ;
-	other_berg_num.checksum = "               0" ;
+	other_berg_num.checksum = "		  0" ;
 
 	f.sync()
 	f.close()
@@ -569,8 +569,8 @@ def Define_iceberg_thickness_and_mass(Number_of_bergs,dx_berg,dy_berg,rho_ice,Ra
 	grid_area=dx*dx
 	for berg_count in range(Number_of_bergs):
 		x_val=dx_berg[berg_count] ; y_val=dy_berg[berg_count]
-		i_val=floor(x_val/dx)
-		j_val=floor(y_val/dx)
+		i_val=int(floor(x_val/dx))
+		j_val=int(floor(y_val/dx))
 
 		#Interpolate thickness from 4 corners - possibly do this later, but I worry about when you are between a shelf and non shelf piece.
 		if Interpolate_from_four_corners==True:
@@ -612,18 +612,18 @@ def Define_iceberg_thickness_and_mass(Number_of_bergs,dx_berg,dy_berg,rho_ice,Ra
 			#		test=test+(mass_on_ocean[i_val,j_val,k])
 			#	print test
 			#	halt
-				
 
-	
+
+
 		Th=h_ice[j_val,i_val]
 		thickness.append(Th)
 		#Check that all thicknesses are positive
 		if Th<=0:
-			print 'Thickness is less than or equal to zero,0!',i_val, j_val,x_val,y_val
+			print('Thickness is less than or equal to zero,0!',i_val, j_val,x_val,y_val)
 			halt
-		#mass.append(Th*rho_ice*element_area) 
-		mass.append(Th*rho_ice*(width[berg_count])**2) 
-		#if element_type=='square': 
+		#mass.append(Th*rho_ice*element_area)
+		mass.append(Th*rho_ice*(width[berg_count])**2)
+		#if element_type=='square':
 		#	mass.append(Th*rho_ice*((2*Radius)**2)) # For square elements
 		#else:
 		#	mass.append(Th*rho_ice*np.pi*(Radius**2))  #For circular elements
@@ -632,15 +632,15 @@ def Define_iceberg_thickness_and_mass(Number_of_bergs,dx_berg,dy_berg,rho_ice,Ra
 
 def check_if_it_is_in_domain(x_val,y_val,x_min,x_max,y_min,y_max,R_earth,lat_init,adjust_lat_ref,dx,dy):
 	point_is_in_domain=True
-	
+
 	if (x_val >= (x_max-x_min+(dx))) or (x_val<= 0) or  (y_val >= (y_max-y_min+(dy))) or (y_val <= 0):
 		point_is_in_domain=False
-	
+
 	return point_is_in_domain
 
 def check_if_it_is_ice(x_val,y_val,ice_mask,dx):
-	i_val=floor(x_val/dx)
-	j_val=floor(y_val/dx)
+	i_val=int(floor(x_val/dx))
+	j_val=int(floor(y_val/dx))
 	if ice_mask[j_val,i_val]==1.:
 		it_is_ice=True
 	else:
@@ -651,9 +651,9 @@ def calculate_element_area(element_type,Radius):
 	if element_type=='square':
 		element_area=(2*Radius)**2
 	elif element_type=='hexagon':
-		element_area=(3.*np.sqrt(3.)/2.)*((4./3.)*(Radius)**2) #Area of hexagon around circle (used for packing)  
+		element_area=(3.*np.sqrt(3.)/2.)*((4./3.)*(Radius)**2) #Area of hexagon around circle (used for packing)
 		#Another derivation uses innner hexagon with two more triangles added, which is a 1/6 of the hexagon area each (two since there are 6, shared by 3 each)
-		#element_area=(4./3.)*H_i, where H_i=(3.*np.sqrt(3.)/2.)*((Radius)**2)  is the area of the inner hexagon (with sides equal to the radius)
+		#element_area=(4./3.)*H_i, where H_i=(3.*np.sqrt(3.)/2.)*((Radius)**2)	is the area of the inner hexagon (with sides equal to the radius)
 
 	return element_area
 
@@ -661,7 +661,7 @@ def add_and_extra_boundary_berg(i,j,New_thickness,y_shift,x_shift,Nbh_thickness_
 		iceberg_num,thickness,width,mass,static_berg,grid_area,rho_ice):
 	tol=0.0000000000001
 	if New_thickness[j,i]>1.+tol:
-		print 'The new thickness is too big!!!', i,j,  New_thickness[j,i]
+		print('The new thickness is too big!!!', i,j,  New_thickness[j,i])
 		halt
 	if ((Nbh_thickness_value-New_thickness[j,i])>tol):
 		y_val=y_shift[j]
@@ -673,7 +673,7 @@ def add_and_extra_boundary_berg(i,j,New_thickness,y_shift,x_shift,Nbh_thickness_
 			iceberg_num.append(berg_count)
 			width_val=np.sqrt((Nbh_thickness_value-New_thickness[j,i])*grid_area)
 			if Nbh_thickness_value-New_thickness[j,i]<0:
-				print 'Stop', Nbh_thickness_value, New_thickness[j,i],i,j
+				print('Stop', Nbh_thickness_value, New_thickness[j,i],i,j)
 			mass_val=Nbh_mass_value-New_mass[j,i]
 			thickness_val=mass_val/(width_val*width_val*rho_ice)
 			thickness.append(thickness_val)
@@ -696,15 +696,15 @@ def add_extra_bergs_on_boundary(dx,dy,x,y,Number_of_bergs,element_area,rho_ice,X
 	New_thickness=(New_area)/(rho_ice*grid_area)  #Should be equal to one everywhere where there is ice shelf.
 	New_mass=regrid_iceberg_thickness(dy_berg,dx_berg,Number_of_bergs,thickness,mass,h_ice,x_shift,y_shift,rho_ice,element_type,static_berg,plot_outcome=False)
 	berg_count=Number_of_bergs
-	
-	
+
+
 	#Vertical boundary
 	for i in np.array([0,Nx-1]):
 		#for j in range(Ny):
 		for j in range(1,Ny-1):
 			Nbh_mass_value=h_ice[j,i]*rho_ice*grid_area  #Neighbouring shelf value
 			if i==0:
-				Nbh_thickness_value=New_thickness[j,1]  #Neighbouring shelf value
+				Nbh_thickness_value=New_thickness[j,1]	#Neighbouring shelf value
 				#x_val=0+(eps*dx)
 			if i==Nx-1:
 				Nbh_thickness_value=New_thickness[j,Nx-2]  #Neighbouring shelf value
@@ -718,7 +718,7 @@ def add_extra_bergs_on_boundary(dx,dy,x,y,Number_of_bergs,element_area,rho_ice,X
 		for i in range(1,Nx-1):
 			Nbh_mass_value=h_ice[j,i]*rho_ice*grid_area  #Neighbouring shelf value
 			if j==0:
-				Nbh_thickness_value=New_thickness[1,i]  #Neighbouring shelf value
+				Nbh_thickness_value=New_thickness[1,i]	#Neighbouring shelf value
 				#y_val=0+(eps*dy)
 			if j==Ny-1:
 				Nbh_thickness_value=New_thickness[Ny-2,i]  #Neighbouring shelf value
@@ -733,7 +733,7 @@ def add_extra_bergs_on_boundary(dx,dy,x,y,Number_of_bergs,element_area,rho_ice,X
 		for i in np.array([0,Nx-1]):
 			Nbh_mass_value=h_ice[j,i]*rho_ice*grid_area  #Neighbouring shelf value
 			if j==0 and i==0:
-				Nbh_thickness_value=New_thickness[1,1]  #Neighbouring shelf value
+				Nbh_thickness_value=New_thickness[1,1]	#Neighbouring shelf value
 			if j==0 and i==Nx-1:
 				Nbh_thickness_value=New_thickness[1,Nx-2]  #Neighbouring shelf value
 			if j==Ny-1 and i==0:
@@ -745,7 +745,7 @@ def add_extra_bergs_on_boundary(dx,dy,x,y,Number_of_bergs,element_area,rho_ice,X
 
 
 	Number_of_bergs=berg_count
-	
+
 	return [dx_berg, dy_berg,iceberg_num, width,Number_of_bergs,static_berg,thickness,mass]
 
 
@@ -769,7 +769,7 @@ def remove_stationary_bergs(dx_berg, dy_berg,iceberg_num,width,Number_of_bergs,s
 def Create_icebergs(lon_init,lat_init,Radius,R_earth, x, y,ice_mask,h_ice,Convert_to_lat_lon,rho_ice,\
 		element_type,scale_the_grid_to_lat_lon,lat_ref,adjust_lat_ref,Interpolate_from_four_corners,\
 		Fill_in_the_boundaries,set_all_bergs_static_by_default,break_some_bonds,Remove_stationary_bergs,set_some_bergs_static_by_default):
-	print 'Starting to create icebergs...'
+	print('Starting to create icebergs...')
 	dx_berg=[]  #x distance in cartesian of berg from lon_init
 	dy_berg=[]  #y distance in cartesian of berg from lat_init
 	dlon_berg=[] #x distance in lon of berg from lon_init
@@ -777,19 +777,19 @@ def Create_icebergs(lon_init,lat_init,Radius,R_earth, x, y,ice_mask,h_ice,Conver
 	lon=[] #Longitude of iceberg
 	lat=[] #Latitude of iceberg
 	iceberg_num=[] #ID of iceberg
-	
+
 	element_area=calculate_element_area(element_type,Radius)
 	#width=np.sqrt(element_area)
 	width=[]
-	
+
 	#dx=x[1]-x[0]  ;dy=y[1]-y[0]
-	#X_min=np.min(x)-dx; X_max=np.max(x)+dx  #In lat lon or cartesian
-	#Y_min=np.min(y)-dy; Y_max=np.max(y)+dy  #In lat lon or cartesian
+	#X_min=np.min(x)-dx; X_max=np.max(x)+dx	 #In lat lon or cartesian
+	#Y_min=np.min(y)-dy; Y_max=np.max(y)+dy	 #In lat lon or cartesian
 	X_min=np.min(x); X_max=np.max(x)  #In lat lon or cartesian
 	Y_min=np.min(y); Y_max=np.max(y)  #In lat lon or cartesian
 
 	#N=2*int(ceil((R_max)/(2*Radius))+2)
-	
+
 	if element_type=='square':
 		N=int(ceil((X_max-X_min)/(Radius)))
 		M=int(ceil((Y_max-Y_min)/(Radius)))
@@ -800,8 +800,8 @@ def Create_icebergs(lon_init,lat_init,Radius,R_earth, x, y,ice_mask,h_ice,Conver
 	#M=6
 	#MP4
 
- 	dx=x[1]-x[0]	
- 	dy=y[1]-y[0]
+	dx=x[1]-x[0]
+	dy=y[1]-y[0]
 	Lx=X_max+dx
 	Ly=Y_max+dx
 
@@ -813,8 +813,8 @@ def Create_icebergs(lon_init,lat_init,Radius,R_earth, x, y,ice_mask,h_ice,Conver
 			y_start=(Radius)
 			x_val=x_start+(2*i*Radius)
 
-		#Hexagonal	
-		else:   
+		#Hexagonal
+		else:
 			y_start=(Radius)+(((i%2)*Radius))
 			x_start=((2/sqrt(3))*Radius)
 			x_val=x_start + (np.sqrt(3)*Radius*i)
@@ -840,8 +840,8 @@ def Create_icebergs(lon_init,lat_init,Radius,R_earth, x, y,ice_mask,h_ice,Conver
 
 
 	Number_of_bergs=berg_count
-	print 'Icebergs created. Number of bergs = ', Number_of_bergs
-	
+	print('Icebergs created. Number of bergs = ', Number_of_bergs)
+
 	#Deciding if icebergs are static or not
 	static_berg = [0. for i in dx_berg]
 	if set_all_bergs_static_by_default==True:
@@ -854,25 +854,25 @@ def Create_icebergs(lon_init,lat_init,Radius,R_earth, x, y,ice_mask,h_ice,Conver
 		#static_berg =Change_static_berg_after_calving(Number_of_bergs,lat,lon, static_berg)
 		static_berg =Change_static_berg_after_calving(Number_of_bergs,dy_berg,dx_berg, static_berg)
 		static_berg=static_berg[0]
-		
+
 	if Remove_stationary_bergs is True:
 		Fill_in_the_boundaries=False
 		[dx_berg, dy_berg,iceberg_num, width,Number_of_bergs,static_berg]=remove_stationary_bergs(dx_berg, dy_berg,iceberg_num,\
 				width,Number_of_bergs,static_berg)
-		print 'After purge  Number of bergs = ', Number_of_bergs
+		print('After purge  Number of bergs = ', Number_of_bergs)
 
 
 	#Defining the thickness of the icebergs
 	(thickness, mass)=Define_iceberg_thickness_and_mass(Number_of_bergs,dx_berg,dy_berg,rho_ice,Radius, h_ice,x,y,\
-			width,Interpolate_from_four_corners,element_area,element_type,static_berg)	
+			width,Interpolate_from_four_corners,element_area,element_type,static_berg)
 
 	N_bergs_before_bd=Number_of_bergs
 	if Fill_in_the_boundaries==True and element_type=='hexagon':
-	 	[dx_berg, dy_berg,iceberg_num, width,Number_of_bergs,static_berg,thickness,mass]= add_extra_bergs_on_boundary(dx,dy,x,y,Number_of_bergs,element_area,rho_ice,X_min,X_max,Y_min,\
-				Y_max,R_earth,lat_init,adjust_lat_ref,ice_mask,iceberg_num,width,dx_berg,dy_berg,\
-				h_ice,element_type,static_berg,thickness,mass)
-		print 'Number of icebergs after accounting for boundaries = ', Number_of_bergs
-	
+		[dx_berg, dy_berg,iceberg_num, width,Number_of_bergs,static_berg,thickness,mass]= add_extra_bergs_on_boundary(dx,dy,x,y,Number_of_bergs,element_area,rho_ice,X_min,X_max,Y_min,\
+		Y_max,R_earth,lat_init,adjust_lat_ref,ice_mask,iceberg_num,width,dx_berg,dy_berg,\
+		h_ice,element_type,static_berg,thickness,mass)
+		print('Number of icebergs after accounting for boundaries = ', Number_of_bergs)
+
 
 
 	if Convert_to_lat_lon==True:
@@ -898,12 +898,12 @@ def Create_icebergs(lon_init,lat_init,Radius,R_earth, x, y,ice_mask,h_ice,Conver
 		if scale_the_grid_to_lat_lon==True:
 			Scale_up=1./2000.
 			Radius=Radius*Scale_up
-			dx_berg = [(i*Scale_up) for i in dx_berg] ; dy_berg = [i*Scale_up for i in dy_berg] 
+			dx_berg = [(i*Scale_up) for i in dx_berg] ; dy_berg = [i*Scale_up for i in dy_berg]
 			x=x*Scale_up ; y=y*Scale_up
 			dx=dx*Scale_up ;dy=dy*Scale_up
 		x=(x-np.min(x))+(dx/2) ; y=(y-np.min(y))+(dy/2)
 		lon=dx_berg  ; lat=dy_berg
-	
+
 	#Note that static_berg calculations used to be here, after the conversion. I have moved them. I hope that this does not affect answers.
 
 	return (Number_of_bergs,lon,lat,iceberg_num,dx_berg,dy_berg,thickness, mass,width,x,y,Radius,static_berg,N_bergs_before_bd)
@@ -935,15 +935,15 @@ def Create_calving_event(lat1,lon1,lat2,lon2):
 	return bond_broken
 
 def get_calving_parameters():
-	#Calve_lat =20  
+	#Calve_lat =20
 	#Calve_lon=160
 	#R_calve=15
-	Calve_lat =20.2*2000  
+	Calve_lat =20.2*2000
 	Calve_lon=165*2000
 	R_calve=12*2000
 	#R_calve=15.*2000.
 	#R_calve=1.*2000.
-	
+
 	return [R_calve, Calve_lon, Calve_lat]
 
 def Change_static_berg_after_calving(Number_of_bergs,lat,lon, static_berg):
@@ -956,7 +956,7 @@ def Change_static_berg_after_calving(Number_of_bergs,lat,lon, static_berg):
 			count=count+1.
 			#print 'An iceberg is now static!'
 			static_berg[i]=0.
-	print 'Amount of unstatic icebergs after calving = ', count
+	print('Amount of unstatic icebergs after calving = ', count)
 
 	return [static_berg]
 
@@ -972,7 +972,7 @@ def Change_static_berg_after_bonding(Number_of_bergs,lat,lon, static_berg):
 			count=count+1.
 			#print 'An iceberg is now static!'
 			static_berg[i]=0.
-	print 'Amount of unstatic icebergs after bonding and restatic= ', count
+	print('Amount of unstatic icebergs after bonding and restatic= ', count)
 
 	return [static_berg]
 
@@ -993,7 +993,7 @@ def find_max_number_of_bonds(first_berg_num,Number_of_bonds):
 
 def Define_iceberg_bonds(Number_of_bergs,iceberg_num,lat,lon,dx_berg, dy_berg,Radius,break_some_bonds,static_berg, Allow_bonds_for_static_iceberg\
 		,N_bergs_before_bd,Allow_bonds_with_boundary_bergs):
-	print 'Starting to create bonds...'
+	print('Starting to create bonds...')
 	#Defining Bonds:
 	Bond=np.zeros((Number_of_bergs, Number_of_bergs))
 	bond_broken=False
@@ -1014,26 +1014,26 @@ def Define_iceberg_bonds(Number_of_bergs,iceberg_num,lat,lon,dx_berg, dy_berg,Ra
 			for j in range(i):
 				if (static_berg[j]<0.5) or (Allow_bonds_for_static_iceberg is True):
 					if i!=j:
-						if ((i <N_bergs_before_bd) and (j <N_bergs_before_bd))  or (Allow_bonds_with_boundary_bergs is True):
+						if ((i <N_bergs_before_bd) and (j <N_bergs_before_bd))	or (Allow_bonds_with_boundary_bergs is True):
 							R_dist=np.sqrt(((dx_berg[i]-dx_berg[j])**2) + ((dy_berg[i]-dy_berg[j])**2))
 							if break_some_bonds==True:
 								bond_broken=Create_calving_event(lat[i],lon[i],lat[j],lon[j])
 							if R_dist < (2.01*Radius) and (bond_broken==False):
 								bond_count=bond_count+2
 								#Connect bond in the first direction
-								first_berg_num.append(iceberg_num[i]);	first_berg_ine.append(999); 
-								other_berg_num.append(iceberg_num[j]); 	other_berg_ine.append(999);
+								first_berg_num.append(iceberg_num[i]);	first_berg_ine.append(999);
+								other_berg_num.append(iceberg_num[j]);	other_berg_ine.append(999);
 								first_berg_jne.append(999);first_berg_lat.append(lat[i]); first_berg_lon.append(lon[i])
 								other_berg_jne.append(999);other_berg_lat.append(lat[j]); other_berg_lon.append(lon[j])
 								#Connect bond in the other direction
 								first_berg_num.append(iceberg_num[j]);	first_berg_ine.append(999);
-								other_berg_num.append(iceberg_num[i]); 	other_berg_ine.append(999);
+								other_berg_num.append(iceberg_num[i]);	other_berg_ine.append(999);
 								first_berg_jne.append(999);first_berg_lat.append(lat[j]); first_berg_lon.append(lon[j])
 								other_berg_jne.append(999);other_berg_lat.append(lat[i]); other_berg_lon.append(lon[i])
 	Number_of_bonds=bond_count
 	Max_number_of_bonds=find_max_number_of_bonds(first_berg_num,Number_of_bonds)
-	print 'Number of bonds created = ' , Number_of_bonds
-	print 'Maximum number of bonds = ' ,  Max_number_of_bonds
+	print('Number of bonds created = ' , Number_of_bonds)
+	print('Maximum number of bonds = ' ,  Max_number_of_bonds)
 
 	return [ Number_of_bonds, first_berg_num,first_berg_ine,first_berg_jne,first_berg_lat,first_berg_lon, other_berg_num,other_berg_ine, other_berg_jne,other_berg_lat,other_berg_lon]
 
@@ -1055,45 +1055,45 @@ def load_ISOMIP_ice_geometry(filename,buffer_number):
 	C=np.arange(M[1]-buffer_number,M[1])
 	ice_mask[A,:]=0; ice_mask[B,:]=0
 	ice_mask[:,A]=0; ice_mask[:,C]=0
-	
+
 	return [x,y,ice_mask,h_ice]
 
 
 def create_clipped_icethickness_file(h_ice,area,mass,grid_area,gravity,Ice_geometry_source):
 	#Creating clipped file
-        [ny, nx]= h_ice.shape ; 
-	
+	[ny, nx]= h_ice.shape ;
+
 	New_ice_thickness_filename='output_files/'+ Ice_geometry_source +'_Ice_Shelf_clipped.nc'
-        g=Dataset(New_ice_thickness_filename,'w') # w if for creating a file
+	g=Dataset(New_ice_thickness_filename,'w') # w if for creating a file
 
-        g.createDimension('nx',nx)
-        g.createDimension('ny',ny)
+	g.createDimension('nx',nx)
+	g.createDimension('ny',ny)
 
-        thick_h=g.createVariable('thick','f8',('ny','nx'))
-        area_h=g.createVariable('area','f8',('ny','nx'))
-        p_surf_h=g.createVariable('p_surf','f8',('ny','nx'))
+	thick_h=g.createVariable('thick','f8',('ny','nx'))
+	area_h=g.createVariable('area','f8',('ny','nx'))
+	p_surf_h=g.createVariable('p_surf','f8',('ny','nx'))
 
-        thick_h.units = 'm'
-        thick_h.standard_name = 'ice shelf thickness (clipped)'
-        area_h.units = 'm2'
-        area_h.standard_name = 'ice shelf area'
-        p_surf_h.units = 'Pa'
-        p_surf_h.standard_name = 'surface pressure due to ice shelf'
+	thick_h.units = 'm'
+	thick_h.standard_name = 'ice shelf thickness (clipped)'
+	area_h.units = 'm2'
+	area_h.standard_name = 'ice shelf area'
+	p_surf_h.units = 'Pa'
+	p_surf_h.standard_name = 'surface pressure due to ice shelf'
 
 	p_surf=(gravity*mass)/grid_area
-        g.variables['thick'][:]=h_ice
-        g.variables['area'][:]=area
-        g.variables['p_surf'][:]=p_surf
-        print 'Creating clipped ice file: ' , New_ice_thickness_filename
-        
-        g.sync()
-        g.close()
+	g.variables['thick'][:]=h_ice
+	g.variables['area'][:]=area
+	g.variables['p_surf'][:]=p_surf
+	print('Creating clipped ice file: ' , New_ice_thickness_filename)
+
+	g.sync()
+	g.close()
 
 
 def load_ISOMIP_reduced_ice_geometry(ice_filename,buffer_number):
 	with nc.Dataset(ice_filename) as file:
 		h_ice = file.variables['thick'][:,:]
-		area =  file.variables['area'][:,:]
+		area =	file.variables['area'][:,:]
 		M=h_ice.shape
 
 	y=np.linspace(1000,79000,M[0],endpoint=True)
@@ -1110,11 +1110,11 @@ def load_ISOMIP_reduced_ice_geometry(ice_filename,buffer_number):
 	#if buffer_number>0:
 	ice_mask[A,:]=0; ice_mask[B,:]=0
 	ice_mask[:,A]=0; ice_mask[:,C]=0
-	
+
 	return [x,y,ice_mask,h_ice]
 
 def load_generic_ice_geometry(filename):
-	print 'Loading from ' , filename
+	print('Loading from ' , filename)
 	with nc.Dataset(filename) as file:
 		h_ice = file.variables['thick'][:]
 		area = file.variables['area'][:,:]
@@ -1125,12 +1125,12 @@ def load_generic_ice_geometry(filename):
 		ice_mask[np.where(ice_mask<-1)]=0.
 		#ice_mask=1-ocean_mask #one if it ice, zero if it is ocean
 		h_ice[np.where(np.isnan(h_ice))]=0.
-                ice_mask[np.where(np.isnan(ice_mask))]=0.
+		ice_mask[np.where(np.isnan(ice_mask))]=0.
 		dx=x[1]-x[0]
 		lon_init=x[0]-(dx/2.)
 		lat_init=y[0]-(dx/2.)
-		print 'Bottom corner = [ ', lon_init,' , ' , lat_init, ' dx = ' , dx
-	
+		print('Bottom corner = [ ', lon_init,' , ' , lat_init, ' dx = ' , dx)
+
 	return [x,y,ice_mask,h_ice,lon_init, lat_init]
 
 def load_Weddel_ice_geometry(filename):
@@ -1143,12 +1143,12 @@ def load_Weddel_ice_geometry(filename):
 		ice_mask[np.where(ice_mask<-1)]=0.
 		#ice_mask=1-ocean_mask #one if it ice, zero if it is ocean
 		h_ice[np.where(np.isnan(h_ice))]=0.
-                ice_mask[np.where(np.isnan(ice_mask))]=0.
-	
+		ice_mask[np.where(np.isnan(ice_mask))]=0.
+
 	return [x,y,ice_mask,h_ice]
 
 def Select_just_one_berg(lon,lat,thickness,width,mass,iceberg_num,chosen_berg_num,static_berg):
-	print 'You have chosen to choose just one icebergs!!!'
+	print('You have chosen to choose just one icebergs!!!')
 	for k in range(len(lat)):
 		if iceberg_num[k]==chosen_berg_num:
 			berg_ind=k
@@ -1164,7 +1164,7 @@ def Select_just_one_berg(lon,lat,thickness,width,mass,iceberg_num,chosen_berg_nu
 
 def plotting_iceberg_positions(lat,lon,Number_of_bergs,R_earth,Radius,IA_scaling,Convert_to_lat_lon, \
 		plot_circles,h_ice,ice_mask,x,y,plot_ice_mask,plot_ice_thickness,thickness,plot_icebergs_positions,static_berg,h_ice_new,plot_h_ice_new):
-	print 'Starting to plot...'	
+	print('Starting to plot...')
 	Radius=Radius*IA_scaling
 	circ_ind=np.linspace(0,2*pi,100);
 
@@ -1233,9 +1233,9 @@ def plotting_iceberg_bonds(first_berg_lat,first_berg_lon,other_berg_lat,other_be
 def spread_mass_to_ocean(Nx,Ny,i,j,mass_on_ocean,x,y,Area,Mass,element_type,grid_area,static_berg):
 		#Note that the x,y coming into this routine are the position within a cell (from 0 to 1), with 0.5,0.5 being in the center of the cell.
 
-		#Initialize weights for each cell	
-		yDxL=0.  ; yDxC=0. ; yDxR=0. ; yCxL=0. ; yCxR=0. 
-		yUxL=0.  ; yUxC=0. ; yUxR=0. ; yCxC=1.
+		#Initialize weights for each cell
+		yDxL=0.	 ; yDxC=0. ; yDxR=0. ; yCxL=0. ; yCxR=0.
+		yUxL=0.	 ; yUxC=0. ; yUxR=0. ; yCxC=1.
 
 		if element_type=='square':
 		#if True:
@@ -1262,7 +1262,7 @@ def spread_mass_to_ocean(Nx,Ny,i,j,mass_on_ocean,x,y,Area,Mass,element_type,grid
 			H = min(( (np.sqrt(Area/(2*sqrt(3)))  / np.sqrt(grid_area))),1) ;  #Non dimensionalize element length by grid area. (This gives the non-dim Apothen of the hexagon)
 			S=(2/np.sqrt(3))*H #Side of the hexagon
 			if S>0.5:
-				print 'Elements must be smaller than a whole gridcell', 'i.e.: S= ' , S , '>=0.5',i,j
+				print('Elements must be smaller than a whole gridcell', 'i.e.: S= ' , S , '>=0.5',i,j)
 				halt
 
 			#Subtracting the position of the nearest corner from x,y
@@ -1274,14 +1274,14 @@ def spread_mass_to_ocean(Nx,Ny,i,j,mass_on_ocean,x,y,Area,Mass,element_type,grid
 
 			x0=(x-origin_x) #Position of the hexagon center, relative to origin at the nearest vertex
 			y0=(y-origin_y)
-			
+
 			#(Area_hex, Area_Q1, Area_Q2, Area_Q3, Area_Q4)= Divide_hexagon_into_4_quadrants_old(x0,y0,H)
 			(Area_hex, Area_Q1, Area_Q2, Area_Q3, Area_Q4)= Hexagon_into_quadrants_using_triangles(x0,y0,H,0.)
 			if min(min(Area_Q1,Area_Q2),min(Area_Q3, Area_Q4)) <0:
-				print 'Yolo'
-				print x0,y0,H
+				print('Yolo')
+				print(x0,y0,H)
 				#print min(min(Area_Q1,Area_Q2),min(Area_Q3, Area_Q4))
-				print Area_hex, Area_Q1, Area_Q2, Area_Q3, Area_Q4
+				print(Area_hex, Area_Q1, Area_Q2, Area_Q3, Area_Q4)
 
 			Area_Q1=Area_Q1/Area_hex
 			Area_Q2=Area_Q2/Area_hex
@@ -1296,14 +1296,14 @@ def spread_mass_to_ocean(Nx,Ny,i,j,mass_on_ocean,x,y,Area,Mass,element_type,grid
 				yUxC=Area_Q2
 				yCxC=Area_Q3
 				yCxR=Area_Q4
-			
+
 			#Top left vertex
 			if x<0.5 and y>= 0.5:
 				yUxC=Area_Q1
 				yUxL=Area_Q2
 				yCxL=Area_Q3
 				yCxC=Area_Q4
-			
+
 			#Bottom left vertex
 			if x<0.5 and y< 0.5:
 				yCxC=Area_Q1
@@ -1320,23 +1320,23 @@ def spread_mass_to_ocean(Nx,Ny,i,j,mass_on_ocean,x,y,Area,Mass,element_type,grid
 
 			#if Sector<4 and Sector>-1:
 			#	print Sector
-				
-					
+
+
 			#Check that this is true
 			if abs(yCxC-(1.-( ((yDxL+yUxR)+(yDxR+yUxL)) + ((yCxL+yCxR)+(yDxC+yUxC)) )))>0.001:
-				print 'All the mass is not being used!!!'
+				print('All the mass is not being used!!!')
 				#print W1 , W2 , W3 , W4 , W5 , W6
 				#print Area_Upper, Area_Lower, Area_right, Area_left
-				print 'Areas: ',Area_hex,Area_hex*Area_Q1, Area_hex*Area_Q2, Area_hex*Area_Q3, Area_hex*Area_Q4
-				print 'x0=',x0, 'y0=',y0, 'H=', H
-				print 'Total area= ',(Area_Q1+Area_Q2+Area_Q3+Area_Q4)#, Sector
-				
+				print('Areas: ',Area_hex,Area_hex*Area_Q1, Area_hex*Area_Q2, Area_hex*Area_Q3, Area_hex*Area_Q4)
+				print('x0=',x0, 'y0=',y0, 'H=', H)
+				print('Total area= ',(Area_Q1+Area_Q2+Area_Q3+Area_Q4))#, Sector
 
-		#Accounting for masked points 
+
+		#Accounting for masked points
 		a=1. ; b=1. ; c=1. ; d=1.
 		if i==0:
 			a=0.;
-		if j==0: 
+		if j==0:
 			b=0.;
 		if i==Nx-1:
 			c=0;
@@ -1364,7 +1364,7 @@ def spread_mass_to_ocean(Nx,Ny,i,j,mass_on_ocean,x,y,Area,Mass,element_type,grid
 def calc_xiyj(x1, x2, x3, x4, y1, y2, y3, y4, x, y, Lx):
 
 	Lx_2=Lx/2.
-  
+
 	alpha=x2-x1
 	delta=y2-y1
 	beta=x4-x1
@@ -1377,7 +1377,7 @@ def calc_xiyj(x1, x2, x3, x4, y1, y2, y3, y4, x, y, Lx):
 	dy=y-y1
 	b=(delta*beta-alpha*epsilon)-(kappa*dx-gamma*dy)
 	c=(alpha*dy-delta*dx)
-	
+
 	#print 'alpha,beta,gamma',alpha,beta,gamma
 	#print 'delta,epsilon,kappa',delta,epsilon,kappa
 	#print 'dx,dy',dx,dy
@@ -1392,8 +1392,8 @@ def calc_xiyj(x1, x2, x3, x4, y1, y2, y3, y4, x, y, Lx):
 				yj=yy1;
 			else:
 				yj=yy2;
-    		else:
-			print 'ERROR', halt
+		else:
+			print('ERROR', halt)
 	else:
 		if (b!=0.):
 			yj=-c/b
@@ -1411,7 +1411,7 @@ def calc_xiyj(x1, x2, x3, x4, y1, y2, y3, y4, x, y, Lx):
 		if (c!=0.):
 			xi=(epsilon*dx-beta*dy)/c
 		else:
-			print 'ERROR', halt2
+			print('ERROR', halt2)
 
 	return xi,yj
 
@@ -1419,23 +1419,23 @@ def calc_xiyj(x1, x2, x3, x4, y1, y2, y3, y4, x, y, Lx):
 
 def regrid_iceberg_thickness(lat,lon,Number_of_bergs,thickness,mass,h_ice,x,y,rho_ice,element_type,static_berg,plot_outcome=True):
 	Nx=len(x)  ; Ny=len(y)
-	dx=x[1]-x[0]    ;dy=y[1]-y[0]
+	dx=x[1]-x[0]	;dy=y[1]-y[0]
 	New_mass=h_ice*0 #Initializing regrided field to zero
 	Area = [(mass[i]/(rho_ice*thickness[i])) for i in range(Number_of_bergs)] ;
 	grid_area=dx*dy #Assuming a regular grid
 	Orig_mass=h_ice*rho_ice*grid_area
-	
+
 	mass_on_ocean=np.zeros([Nx,Ny,10])   #Setting up matrix to spread mass to ocean.  Note that I have used 10 points  so that I can ignore 0 and match with python numbering
 	#mass_on_ocean=np.zeros([Nx,Ny])   #Setting up matrix to spread mass to ocean.
 	#Note: You may want to import the grid that the ocean model actually sees.
-	for berg_count in range(Number_of_bergs):  
-		x_val=lon[berg_count]  
+	for berg_count in range(Number_of_bergs):
+		x_val=lon[berg_count]
 		y_val=lat[berg_count]
 		Area_val=Area[berg_count]
 		mass_val=mass[berg_count]
 
-		j_val=floor(y_val/dy)
-		i_val=floor(x_val/dx)
+		j_val=int(floor(y_val/dy))
+		i_val=int(floor(x_val/dx))
 		x_cell=(x_val-x[i_val])/sqrt(grid_area)+0.5
 		y_cell=(y_val-y[j_val])/sqrt(grid_area)+0.5
 
@@ -1465,39 +1465,39 @@ def regrid_iceberg_thickness(lat,lon,Number_of_bergs,thickness,mass,h_ice,x,y,rh
 					+  (mass_on_ocean[i+1,j-1,7]+mass_on_ocean[i-1,j+1,3]) ) \
 					+   ( (mass_on_ocean[i-1,j  ,6]+mass_on_ocean[i+1,j  ,4])   \
 					+  (mass_on_ocean[i  ,j-1,8]+mass_on_ocean[i  ,j+1,2]) ) )
-	
+
 	#Adding mass to boundary cells
 	for j in range(1,Ny-1):
 		i=0
 		New_mass[j,i]=mass_on_ocean[i,j,5] +  mass_on_ocean[i+1,j+1,1] +  mass_on_ocean[i+1,j-1,7] \
-			+  mass_on_ocean[i+1,j  ,4] 	+  mass_on_ocean[i  ,j-1,8] + mass_on_ocean[i  ,j+1,2] 
-		i=Nx-1	
+			+  mass_on_ocean[i+1,j	,4]	+  mass_on_ocean[i  ,j-1,8] + mass_on_ocean[i  ,j+1,2]
+		i=Nx-1
 		New_mass[j,i]=mass_on_ocean[i,j,5] +  mass_on_ocean[i-1,j-1,9] + mass_on_ocean[i-1,j+1,3] \
 					+   mass_on_ocean[i-1,j ,6] + mass_on_ocean[i ,j-1,8]+mass_on_ocean[i ,j+1,2]
-	
+
 	for i in range(1,Nx-1):
 		j=0
 		New_mass[j,i]=mass_on_ocean[i,j,5] +   mass_on_ocean[i+1,j+1,1] +  mass_on_ocean[i-1,j+1,3]  \
-				+  mass_on_ocean[i-1,j  ,6] + mass_on_ocean[i+1,j  ,4] +  mass_on_ocean[i  ,j+1,2]
+				+  mass_on_ocean[i-1,j	,6] + mass_on_ocean[i+1,j  ,4] +  mass_on_ocean[i  ,j+1,2]
 
-		j=Ny-1	
-		New_mass[j,i]=mass_on_ocean[i,j,5] +  mass_on_ocean[i-1,j-1,9] 	+  mass_on_ocean[i+1,j-1,7] + \
+		j=Ny-1
+		New_mass[j,i]=mass_on_ocean[i,j,5] +  mass_on_ocean[i-1,j-1,9]	+  mass_on_ocean[i+1,j-1,7] + \
 				mass_on_ocean[i-1,j  ,6]+mass_on_ocean[i+1,j  ,4] +  mass_on_ocean[i  ,j-1,8]
 
 	#Corners
 	i=0 ;j=0
-	New_mass[j,i]=mass_on_ocean[i,j,5] + mass_on_ocean[i+1,j+1,1] + mass_on_ocean[i+1,j  ,4] + mass_on_ocean[i  ,j+1,2]  
+	New_mass[j,i]=mass_on_ocean[i,j,5] + mass_on_ocean[i+1,j+1,1] + mass_on_ocean[i+1,j  ,4] + mass_on_ocean[i  ,j+1,2]
 	i=0 ;j=Ny-1
-	New_mass[j,i]=mass_on_ocean[i,j,5] + mass_on_ocean[i+1,j-1,7] + mass_on_ocean[i+1,j  ,4] + mass_on_ocean[i  ,j-1,8]  
+	New_mass[j,i]=mass_on_ocean[i,j,5] + mass_on_ocean[i+1,j-1,7] + mass_on_ocean[i+1,j  ,4] + mass_on_ocean[i  ,j-1,8]
 	i=Nx-1; j=0
 	New_mass[j,i]=mass_on_ocean[i,j,5] + mass_on_ocean[i-1,j+1,3] + mass_on_ocean[i-1,j  ,6] + mass_on_ocean[i  ,j+1,2]
-	i=Nx-1; j=Ny-1	
+	i=Nx-1; j=Ny-1
 	New_mass[j,i]=mass_on_ocean[i,j,5] + mass_on_ocean[i-1,j-1,9] + mass_on_ocean[i-1,j  ,6] + mass_on_ocean[i  ,j-1,8]
 
 
 	if plot_outcome==True: #MP2
-		#print 'Warning: the interpolation scheme is not the same as the one used in the model'	
-		
+		#print 'Warning: the interpolation scheme is not the same as the one used in the model'
+
 		plot_data=(Orig_mass-New_mass)/Orig_mass
 		cNorm = mpl.colors.Normalize(vmin=-.1, vmax=.1)
 		vmax=np.max(abs(plot_data))
@@ -1523,7 +1523,7 @@ def regrid_iceberg_thickness(lat,lon,Number_of_bergs,thickness,mass,h_ice,x,y,rh
 	return New_mass
 
 def Switch_x_and_y_directions(lat,lon, A, B, C):
-	print 'Switching x and y directions!!!'
+	print('Switching x and y directions!!!')
 	lat_new=[]
 	lon_new=[]
 	for i in range(len(lat)):
@@ -1542,39 +1542,39 @@ def Switch_x_and_y_directions(lat,lon, A, B, C):
 	return	[lat_new,lon_new,A_new,B_new, C_new]
 
 def interpolate_field_onto_new_grid(x,y,x_new,y_new,field):
-        xx, yy = np.meshgrid(x, y)
-        #f = interpolate.interp2d(x, y, field, kind='cubic')
+	xx, yy = np.meshgrid(x, y)
+	#f = interpolate.interp2d(x, y, field, kind='cubic')
 	f = interpolate.interp2d(x, y, field, kind='linear')
-        field_new = f(x_new, y_new)
-        return field_new
+	field_new = f(x_new, y_new)
+	return field_new
 
 def convert_input_to_catesian_coordinates(lon,lat,ice_mask,h_ice,R_earth,dx):
 	#Parameters
-        thickness_threshhold=0.01
+	thickness_threshhold=0.01
 
-        lon_max=np.max(lon) ; lon_min=np.min(lon)
-        lat_max=np.max(lat) ; lat_min=np.min(lat)
-        lat_ref=np.mean(lat)
+	lon_max=np.max(lon) ; lon_min=np.min(lon)
+	lat_max=np.max(lat) ; lat_min=np.min(lat)
+	lat_ref=np.mean(lat)
 
-        #Converting to cartesian grid
-        x=(np.pi/180)*R_earth*np.cos(lat_ref*np.pi/180.)*lon
-        y=(np.pi/180)*R_earth*lat
-        x=x-np.min(x)
-        y=y-np.min(y)
-        
-        #Creating regular grid
-        x_new=np.linspace(np.min(x), np.max(x), num=len(x))
-        y_new=np.linspace(np.min(y),np.max(y), num=len(y))
-        x_new=np.arange(np.min(x), np.max(x), step=dx)
-        y_new=np.arange(np.min(y), np.max(y), step=dx)
+	#Converting to cartesian grid
+	x=(np.pi/180)*R_earth*np.cos(lat_ref*np.pi/180.)*lon
+	y=(np.pi/180)*R_earth*lat
+	x=x-np.min(x)
+	y=y-np.min(y)
 
-        h_ice_new=interpolate_field_onto_new_grid(x,y,x_new,y_new,h_ice)
-        h_ice_new[np.where(h_ice_new<thickness_threshhold)]=0.
-        ice_mask_new=interpolate_field_onto_new_grid(x,y,x_new,y_new,ice_mask)
-        #ice_mask_new=np.round(ice_mask_new)
-        #print ice_mask_new[50,:]
-        
-        return [x_new,y_new,ice_mask_new,h_ice_new]
+	#Creating regular grid
+	x_new=np.linspace(np.min(x), np.max(x), num=len(x))
+	y_new=np.linspace(np.min(y),np.max(y), num=len(y))
+	x_new=np.arange(np.min(x), np.max(x), step=dx)
+	y_new=np.arange(np.min(y), np.max(y), step=dx)
+
+	h_ice_new=interpolate_field_onto_new_grid(x,y,x_new,y_new,h_ice)
+	h_ice_new[np.where(h_ice_new<thickness_threshhold)]=0.
+	ice_mask_new=interpolate_field_onto_new_grid(x,y,x_new,y_new,ice_mask)
+	#ice_mask_new=np.round(ice_mask_new)
+	#print ice_mask_new[50,:]
+
+	return [x_new,y_new,ice_mask_new,h_ice_new]
 
 
 ####################################################################################################################################################
@@ -1590,7 +1590,7 @@ def main(args):
 	input_is_cartesian=args.input_is_cartesian
 
 	#Iceberg setup flags
-	only_choose_one_berg=args.only_choose_one_berg  ; chosen_berg_num=args.chosen_berg_num
+	only_choose_one_berg=args.only_choose_one_berg	; chosen_berg_num=args.chosen_berg_num
 	scale_the_grid_to_lat_lon=args.scale_the_grid_to_lat_lon
 	adjust_lat_ref=args.adjust_lat_ref
 	set_all_thicknesses_to_one=args.set_all_thicknesses_to_one   ; Th_prescribed=args.Th_prescribed
@@ -1600,9 +1600,9 @@ def main(args):
 	Use_default_radius=args.Use_default_radius
 
 	#Static vs non-static flags
-	set_all_bergs_static_by_default=args.set_all_bergs_static_by_default 
-	set_some_bergs_static_by_default=args.set_some_bergs_static_by_default 
-	Make_icebergs_non_static_later=args.Make_icebergs_non_static_later 
+	set_all_bergs_static_by_default=args.set_all_bergs_static_by_default
+	set_some_bergs_static_by_default=args.set_some_bergs_static_by_default
+	Make_icebergs_non_static_later=args.Make_icebergs_non_static_later
 
 	#Mass spreadng flags
 	element_type=args.element_type
@@ -1649,19 +1649,19 @@ def main(args):
 
 	#Applying some special case flags
 	if Ice_geometry_source=='ISOMIP':
-		Convert_to_lat_lon=False       ; input_is_cartesian=True ; 
+		Convert_to_lat_lon=False       ; input_is_cartesian=True ;
 	if Ice_geometry_source=='Generic':
-		Convert_to_lat_lon=False       ; input_is_cartesian=True ; set_all_bergs_static_by_default=False ; Fill_in_the_boundaries=False ; Use_default_radius=True 
+		Convert_to_lat_lon=False       ; input_is_cartesian=True ; set_all_bergs_static_by_default=False ; Fill_in_the_boundaries=False ; Use_default_radius=True
 	if Ice_geometry_source=='Weddell':
-		Convert_to_lat_lon=False        ; input_is_cartesian=False
+		Convert_to_lat_lon=False	; input_is_cartesian=False
 
 	#Applying Warnings
 	if element_type=='square' and Interpolate_from_four_corners==True:
-		print 'Square packing with R dividing dx, works best with interpolation off.'
+		print('Square packing with R dividing dx, works best with interpolation off.')
 
-	print 'Element type= ', element_type, ';  Switched_regridding= ', Switch_regridding_element_type
+	print('Element type= ', element_type, ';  Switched_regridding= ', Switch_regridding_element_type)
 	if break_some_bonds==True:
-		print 'Some bonds are being broken'
+		print('Some bonds are being broken')
 
 	#####################################################################################
 	#####################################################################################
@@ -1669,30 +1669,30 @@ def main(args):
 
 	if  Ice_geometry_source=='ISOMIP':
 		if ISOMIP_reduced==False:
-			lon_init=0  ; lat_init=-70.  #latitude  of bottom left corner of iceberg
+			lon_init=0  ; lat_init=-70.  #latitude	of bottom left corner of iceberg
 			(x,y,ice_mask,h_ice)=load_ISOMIP_ice_geometry(ISOMIP_ice_geometry_filename,buffer_number)
 			ice_filename=ISOMIP_ice_geometry_filename
 		else:
-			lon_init=0  ; lat_init=-70.  #latitude  of bottom left corner of iceberg
+			lon_init=0  ; lat_init=-70.  #latitude	of bottom left corner of iceberg
 			(x,y,ice_mask,h_ice)=load_ISOMIP_reduced_ice_geometry(ISOMIP_reduced_ice_geometry_filename,buffer_number)
 			ice_filename=ISOMIP_reduced_ice_geometry_filename
 
 	if  Ice_geometry_source=='Weddell':
-		lon_init=-32.9  ; lat_init=-70.  #latitude  of bottom left corner of iceberg
+		lon_init=-32.9	; lat_init=-70.	 #latitude  of bottom left corner of iceberg
 		(x,y,ice_mask,h_ice)=load_Weddel_ice_geometry(Weddell_ice_geometry_filename)
 		ice_filename=Weddell_ice_geometry_filename
-		Radius=0.5*10000. 
+		Radius=0.5*10000.
 
 	if  Ice_geometry_source=='Generic':
 		(x,y,ice_mask,h_ice, lon_init, lat_init)=load_generic_ice_geometry(Generic_ice_geometry_filename)
 
-        if input_is_cartesian is False:
-                dx=10000.
-                lat_grid=y ; lon_grid=x
-                (x,y,ice_mask,h_ice)=convert_input_to_catesian_coordinates(x,y,ice_mask,h_ice,R_earth,dx)
+	if input_is_cartesian is False:
+		dx=10000.
+		lat_grid=y ; lon_grid=x
+		(x,y,ice_mask,h_ice)=convert_input_to_catesian_coordinates(x,y,ice_mask,h_ice,R_earth,dx)
 
 	if set_all_thicknesses_to_one==True:
-		print 'All thicknesses being set equal to 1'
+		print('All thicknesses being set equal to 1')
 		if set_all_domain_to_ice is True:
 			ice_mask[:,:]=1.
 		h_ice[np.where(ice_mask>0.5)]=Th_prescribed
@@ -1704,15 +1704,15 @@ def main(args):
 			Radius=R_frac*dx  #(less than half the grid size)
 		if element_type=='hexagon':
 			Radius= (np.sqrt(3)/2.) *(R_frac*dx)   #(S is < half the grid size)
-	print 'Radius set to R= ' , Radius
-	
+	print('Radius set to R= ' , Radius)
+
 	lat_ref=np.max(y)
-	#Define the positions,thickness, mass,  of the icebergs
+	#Define the positions,thickness, mass,	of the icebergs
 	(Number_of_bergs,lon,lat,iceberg_num,dx_berg, dy_berg,thickness,mass,width,x,y,Radius,static_berg,N_bergs_before_bd)= Create_icebergs(lon_init,lat_init,\
 			Radius,R_earth, x, y,ice_mask,h_ice,Convert_to_lat_lon,rho_ice,element_type,scale_the_grid_to_lat_lon,lat_ref,adjust_lat_ref,\
 			Interpolate_from_four_corners,Fill_in_the_boundaries, set_all_bergs_static_by_default,break_some_bonds,Remove_stationary_bergs,set_some_bergs_static_by_default)
 
-	print 'Maximum thickness:', np.max(thickness), np.min(thickness)
+	print('Maximum thickness:', np.max(thickness), np.min(thickness))
 	#Define the positions of the iceberg bonds
 	if Create_icebergs_bonds==True:
 		(Number_of_bonds, first_berg_num,first_berg_ine,first_berg_jne,first_berg_lat,first_berg_lon, other_berg_num,other_berg_ine, other_berg_jne,other_berg_lat,other_berg_lon)=\
@@ -1730,7 +1730,7 @@ def main(args):
 
 	if regrid_icebergs_onto_grid==True:
 		if scale_the_grid_to_lat_lon==True:
-			print 'Regridding should be run with scale_the_grid_to_lat_lon off'
+			print('Regridding should be run with scale_the_grid_to_lat_lon off')
 		else:
 			if Switch_regridding_element_type==True:
 				if element_type=='square':
@@ -1749,20 +1749,20 @@ def main(args):
 			for j in range(M[0]):
 				for i in range(M[1]):
 					if New_area[j,i]>0:
-						h_ice_new[j,i]=New_mass[j,i]/(rho_ice*New_area[j,i])  
+						h_ice_new[j,i]=New_mass[j,i]/(rho_ice*New_area[j,i])
 
 	if Switch_x_and_y_to_rotate_90 is True:
 		[lat,lon, h_ice_new,New_area,New_mass]=Switch_x_and_y_directions(lat,lon, h_ice_new,New_area,New_mass)
-			
 
-	if save_restart_files==True:	
+
+	if save_restart_files==True:
 		#Creating iceberg restart file
 		Create_iceberg_restart_file(Number_of_bergs, lon,lat,thickness,width,mass,mass_scaling,iceberg_num,Ice_geometry_source,static_berg)
-		
+
 		#Creating bond restart file
 		if Create_icebergs_bonds==True:
 			Create_bond_restart_file(Number_of_bonds,first_berg_num,first_berg_ine,first_berg_jne,other_berg_ine,other_berg_jne,iceberg_num,other_berg_num,Ice_geometry_source)
-			
+
 		if save_new_h_ice_file==True:
 			create_clipped_icethickness_file(h_ice_new,New_area,New_mass,grid_area,gravity,Ice_geometry_source)
 
@@ -1774,15 +1774,15 @@ def main(args):
 			plotting_iceberg_bonds(first_berg_lat,first_berg_lon,other_berg_lat,other_berg_lon,Number_of_bonds)
 
 	#field=New_mass/(rho_ice*grid_area)
-	field=New_area/grid_area -1. 
-	M=field.shape	
+	field=New_area/grid_area -1.
+	M=field.shape
 	#print 'field',(field[M[0]-1,:])
 	#print 'field',(field[M[0]-2,:])
 	#print 'h_ice',h_ice_new[:,:]
 	#print 'h_ice-1',h_ice_new[:,:]-1.
 	if Run_plotting_subroutine:
 		plt.show()
-	print 'Script complete'
+	print('Script complete')
 
 
 
@@ -1790,17 +1790,3 @@ if __name__ == '__main__':
 	optCmdLineArgs=	parseCommandLine()
 	main(optCmdLineArgs)
 	#sys.exit(main())
-
-
-
-
-
-
-
-
-
-
-
-
-
-

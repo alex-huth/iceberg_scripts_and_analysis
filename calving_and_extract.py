@@ -39,8 +39,8 @@ Max_C=0.0058 #Maximum comes from the other calving flux file.
 #Defining the amount of calving
 calving=np.zeros((1,nx,ny))
 C=np.zeros((nx,ny))
-for i in xrange(0,nx):
-    for j in xrange(1,ny):
+for i in range(0,nx):
+    for j in range(1,ny):
         r_sq= (i-x_pos_ind_1)**2+(j-y_pos_ind_1)**2
         if r_sq  < 3*(R**2):
             C[i,j]=Max_C*np.exp(-(r_sq/(R**2))) 
@@ -101,9 +101,9 @@ f.variables['time'][:]=0.
 #f.variables['xt'][:]=xy
 f.variables['CALVING'][:]=calving
 
-print f.dimensions
-for dimobj in f.dimensions.values():
-    print dimobj
+print((f.dimensions))
+for dimobj in list(f.dimensions.values()):
+    print(dimobj)
 f.sync()
 f.close()
 

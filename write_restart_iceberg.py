@@ -23,7 +23,7 @@ def Create_iceberg_restart_file(f,g,Number_of_bergs, Number_of_bonds,lon,lat,thi
 
 
 	# To copy the dimension of the netCDF file
-	for dimname,dim in f.dimensions.iteritems():
+	for dimname,dim in f.dimensions.items():
 		# if you want to make changes in the dimensions of the new file
 		# you should add your own conditions here before the creation of the dimension.
 		#g.createDimension(dimname,len(dim))
@@ -31,7 +31,7 @@ def Create_iceberg_restart_file(f,g,Number_of_bergs, Number_of_bonds,lon,lat,thi
 
 	# To copy the variables of the netCDF file
 
-	for varname,ncvar in f.variables.iteritems():
+	for varname,ncvar in f.variables.items():
 		# if you want to make changes in the variables of the new file
 		# you should add your own conditions here before the creation of the variable.
 		var = g.createVariable(varname,ncvar.dtype,ncvar.dimensions)
@@ -95,7 +95,7 @@ def Create_bond_restart_file(q,h, Number_of_bonds,first_berg_num,first_berg_ine,
 
 
 	# To copy the dimension of the netCDF file
-	for dimname,dim in h.dimensions.iteritems():
+	for dimname,dim in h.dimensions.items():
 		# if you want to make changes in the dimensions of the new file
 		# you should add your own conditions here before the creation of the dimension.
 		#g.createDimension(dimname,len(dim))
@@ -103,7 +103,7 @@ def Create_bond_restart_file(q,h, Number_of_bonds,first_berg_num,first_berg_ine,
 
 	# To copy the variables of the netCDF file
 
-	for varname,ncvar in h.variables.iteritems():
+	for varname,ncvar in h.variables.items():
 		# if you want to make changes in the variables of the new file
 		# you should add your own conditions here before the creation of the variable.
 		var = q.createVariable(varname,ncvar.dtype,ncvar.dimensions)
@@ -145,7 +145,7 @@ def Create_bond_restart_file(q,h, Number_of_bonds,first_berg_num,first_berg_ine,
 	q.close()
 	
 	if Number_of_bonds==0:
-		print 'Warning: Iceberg bond files do not work for single icebergs (no bonds). Turn iceberg bonds off'
+		print('Warning: Iceberg bond files do not work for single icebergs (no bonds). Turn iceberg bonds off')
 
 def plotting_iceberg_positions_and_bonds(lat,lon,first_berg_lat,first_berg_lon,other_berg_lat,other_berg_lon,Number_of_bergs,Number_of_bonds,R_earth,Radius,IA_scaling,convert_to_lat_lon):
 
@@ -396,12 +396,12 @@ def main():
 
 	##################################################################################
 	
-	print 'Number of bergs created= ' , Number_of_bergs
-	print 'Number of Bonds created= ' , Number_of_bonds
+	print('Number of bergs created= ' , Number_of_bergs)
+	print('Number of Bonds created= ' , Number_of_bonds)
 	plotting_iceberg_positions_and_bonds(lat,lon,first_berg_lat,first_berg_lon,other_berg_lat,other_berg_lon,Number_of_bergs,Number_of_bonds,R_earth,Radius,IA_scaling,convert_to_lat_lon)
 	# Plotting the positions and bonds of the newly formed formation
 
-	print 'Script complete'
+	print('Script complete')
 
 
 
